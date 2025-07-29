@@ -59,6 +59,8 @@ describe("ProviderSettingsManager", () => {
 							id: "default",
 							diffEnabled: true,
 							fuzzyMatchThreshold: 1.0,
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 					},
 					modeApiConfigs: {},
@@ -68,6 +70,8 @@ describe("ProviderSettingsManager", () => {
 						openAiHeadersMigrated: true,
 						consecutiveMistakeLimitMigrated: true,
 						todoListEnabledMigrated: true,
+						enableUrlContextMigrated: true,
+						enableGroundingMigrated: true,
 					},
 				}),
 			)
@@ -85,9 +89,13 @@ describe("ProviderSettingsManager", () => {
 					apiConfigs: {
 						default: {
 							config: {},
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 						test: {
 							apiProvider: "anthropic",
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 					},
 					migrations: {
@@ -118,16 +126,22 @@ describe("ProviderSettingsManager", () => {
 							config: {},
 							id: "default",
 							rateLimitSeconds: undefined,
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 						test: {
 							apiProvider: "anthropic",
 							rateLimitSeconds: undefined,
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 						existing: {
 							apiProvider: "anthropic",
 							// this should not really be possible, unless someone has loaded a hand edited config,
 							// but we don't overwrite so we'll check that
 							rateLimitSeconds: 43,
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 					},
 					migrations: {
@@ -155,16 +169,22 @@ describe("ProviderSettingsManager", () => {
 							config: {},
 							id: "default",
 							consecutiveMistakeLimit: undefined,
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 						test: {
 							apiProvider: "anthropic",
 							consecutiveMistakeLimit: undefined,
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 						existing: {
 							apiProvider: "anthropic",
 							// this should not really be possible, unless someone has loaded a hand edited config,
 							// but we don't overwrite so we'll check that
 							consecutiveMistakeLimit: 5,
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 					},
 					migrations: {
@@ -196,16 +216,22 @@ describe("ProviderSettingsManager", () => {
 							config: {},
 							id: "default",
 							todoListEnabled: undefined,
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 						test: {
 							apiProvider: "anthropic",
 							todoListEnabled: undefined,
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 						existing: {
 							apiProvider: "anthropic",
 							// this should not really be possible, unless someone has loaded a hand edited config,
 							// but we don't overwrite so we'll check that
 							todoListEnabled: false,
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 					},
 					migrations: {
@@ -228,6 +254,38 @@ describe("ProviderSettingsManager", () => {
 			expect(storedConfig.apiConfigs.existing.todoListEnabled).toEqual(false)
 			expect(storedConfig.migrations.todoListEnabledMigrated).toEqual(true)
 		})
+		it("should migrate enableUrlContext and enableGrounding for Gemini configs", async () => {
+			mockSecrets.get.mockResolvedValue(
+				JSON.stringify({
+					currentApiConfigName: "default",
+					apiConfigs: {
+						default: {
+							apiProvider: "gemini",
+							id: "default",
+							enableUrlContext: true,
+							enableGrounding: true,
+						},
+						other: {
+							apiProvider: "anthropic",
+							id: "other",
+						},
+					},
+					migrations: {
+						enableUrlContextMigrated: false,
+						enableGroundingMigrated: false,
+					},
+				}),
+			)
+			await providerSettingsManager.initialize()
+			const calls = mockSecrets.store.mock.calls
+			const storedConfig = JSON.parse(calls[calls.length - 1][1])
+			expect(storedConfig.apiConfigs.default.enableUrlContext).toEqual(true)
+			expect(storedConfig.apiConfigs.default.enableGrounding).toEqual(true)
+			expect(storedConfig.apiConfigs.other.enableUrlContext).toBeUndefined()
+			expect(storedConfig.apiConfigs.other.enableGrounding).toBeUndefined()
+			expect(storedConfig.migrations.enableUrlContextMigrated).toEqual(true)
+			expect(storedConfig.migrations.enableGroundingMigrated).toEqual(true)
+		})
 
 		it("should throw error if secrets storage fails", async () => {
 			mockSecrets.get.mockRejectedValue(new Error("Storage failed"))
@@ -245,10 +303,14 @@ describe("ProviderSettingsManager", () => {
 				apiConfigs: {
 					default: {
 						id: "default",
+						enableUrlContext: false,
+						enableGrounding: false,
 					},
 					test: {
 						apiProvider: "anthropic",
 						id: "test-id",
+						enableUrlContext: false,
+						enableGrounding: false,
 					},
 				},
 				modeApiConfigs: {
@@ -305,7 +367,10 @@ describe("ProviderSettingsManager", () => {
 				JSON.stringify({
 					currentApiConfigName: "default",
 					apiConfigs: {
-						default: {},
+						default: {
+							enableUrlContext: false,
+							enableGrounding: false,
+						},
 					},
 					modeApiConfigs: {
 						code: "default",
@@ -352,7 +417,10 @@ describe("ProviderSettingsManager", () => {
 				JSON.stringify({
 					currentApiConfigName: "default",
 					apiConfigs: {
-						default: {},
+						default: {
+							enableUrlContext: false,
+							enableGrounding: false,
+						},
 					},
 					modeApiConfigs: {
 						code: "default",
@@ -405,6 +473,8 @@ describe("ProviderSettingsManager", () => {
 						apiProvider: "anthropic",
 						apiKey: "old-key",
 						id: "test-id",
+						enableUrlContext: false,
+						enableGrounding: false,
 					},
 				},
 				migrations: {
@@ -417,6 +487,8 @@ describe("ProviderSettingsManager", () => {
 			const updatedConfig: ProviderSettings = {
 				apiProvider: "anthropic",
 				apiKey: "new-key",
+				enableUrlContext: false,
+				enableGrounding: false,
 			}
 
 			await providerSettingsManager.saveConfig("test", updatedConfig)
@@ -446,7 +518,12 @@ describe("ProviderSettingsManager", () => {
 			mockSecrets.get.mockResolvedValue(
 				JSON.stringify({
 					currentApiConfigName: "default",
-					apiConfigs: { default: {} },
+					apiConfigs: {
+						default: {
+							enableUrlContext: false,
+							enableGrounding: false,
+						},
+					},
 					migrations: {
 						rateLimitSecondsMigrated: true,
 						diffSettingsMigrated: true,
@@ -456,7 +533,12 @@ describe("ProviderSettingsManager", () => {
 			)
 			mockSecrets.store.mockRejectedValue(new Error("Storage failed"))
 
-			await expect(providerSettingsManager.saveConfig("test", {})).rejects.toThrow(
+			await expect(
+				providerSettingsManager.saveConfig("test", {
+					enableUrlContext: false,
+					enableGrounding: false,
+				}),
+			).rejects.toThrow(
 				"Failed to save config: Error: Failed to write provider profiles to secrets: Error: Storage failed",
 			)
 		})
@@ -469,10 +551,14 @@ describe("ProviderSettingsManager", () => {
 				apiConfigs: {
 					default: {
 						id: "default",
+						enableUrlContext: false,
+						enableGrounding: false,
 					},
 					test: {
 						apiProvider: "anthropic",
 						id: "test-id",
+						enableUrlContext: false,
+						enableGrounding: false,
 					},
 				},
 				migrations: {
@@ -495,7 +581,7 @@ describe("ProviderSettingsManager", () => {
 			mockSecrets.get.mockResolvedValue(
 				JSON.stringify({
 					currentApiConfigName: "default",
-					apiConfigs: { default: {} },
+					apiConfigs: { default: { enableUrlContext: false, enableGrounding: false } },
 				}),
 			)
 
@@ -511,6 +597,8 @@ describe("ProviderSettingsManager", () => {
 					apiConfigs: {
 						default: {
 							id: "default",
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 					},
 				}),
@@ -531,6 +619,8 @@ describe("ProviderSettingsManager", () => {
 						apiProvider: "anthropic",
 						apiKey: "test-key",
 						id: "test-id",
+						enableUrlContext: false,
+						enableGrounding: false,
 					},
 				},
 				migrations: {
@@ -541,7 +631,8 @@ describe("ProviderSettingsManager", () => {
 			mockGlobalState.get.mockResolvedValue(42)
 			mockSecrets.get.mockResolvedValue(JSON.stringify(existingConfig))
 
-			const { name, ...providerSettings } = await providerSettingsManager.activateProfile({ name: "test" })
+			const result = await providerSettingsManager.activateProfile({ name: "test" })
+			const { name, ...providerSettings } = result
 
 			expect(name).toBe("test")
 			expect(providerSettings).toEqual({ apiProvider: "anthropic", apiKey: "test-key", id: "test-id" })
@@ -562,7 +653,14 @@ describe("ProviderSettingsManager", () => {
 			mockSecrets.get.mockResolvedValue(
 				JSON.stringify({
 					currentApiConfigName: "default",
-					apiConfigs: { default: { config: {}, id: "default" } },
+					apiConfigs: {
+						default: {
+							config: {},
+							id: "default",
+							enableUrlContext: false,
+							enableGrounding: false,
+						},
+					},
 				}),
 			)
 
@@ -636,7 +734,14 @@ describe("ProviderSettingsManager", () => {
 			mockSecrets.get.mockResolvedValue(
 				JSON.stringify({
 					currentApiConfigName: "test",
-					apiConfigs: { test: { apiProvider: "anthropic", id: "test-id" } },
+					apiConfigs: {
+						test: {
+							apiProvider: "anthropic",
+							id: "test-id",
+							enableUrlContext: false,
+							enableGrounding: false,
+						},
+					},
 				}),
 			)
 
@@ -651,7 +756,19 @@ describe("ProviderSettingsManager", () => {
 		it("should return true for existing config", async () => {
 			const existingConfig: ProviderProfiles = {
 				currentApiConfigName: "default",
-				apiConfigs: { default: { id: "default" }, test: { apiProvider: "anthropic", id: "test-id" } },
+				apiConfigs: {
+					default: {
+						id: "default",
+						enableUrlContext: false,
+						enableGrounding: false,
+					},
+					test: {
+						apiProvider: "anthropic",
+						id: "test-id",
+						enableUrlContext: false,
+						enableGrounding: false,
+					},
+				},
 				migrations: { rateLimitSecondsMigrated: false },
 			}
 
@@ -663,7 +780,10 @@ describe("ProviderSettingsManager", () => {
 
 		it("should return false for non-existent config", async () => {
 			mockSecrets.get.mockResolvedValue(
-				JSON.stringify({ currentApiConfigName: "default", apiConfigs: { default: {} } }),
+				JSON.stringify({
+					currentApiConfigName: "default",
+					apiConfigs: { default: { enableUrlContext: false, enableGrounding: false } },
+				}),
 			)
 
 			const hasConfig = await providerSettingsManager.hasConfig("nonexistent")

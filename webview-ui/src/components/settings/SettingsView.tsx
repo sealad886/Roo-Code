@@ -219,15 +219,31 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 	const setApiConfigurationField = useCallback(
 		<K extends keyof ProviderSettings>(field: K, value: ProviderSettings[K]) => {
 			setCachedState((prevState) => {
-				if (prevState.apiConfiguration?.[field] === value) {
+				const previousValue = prevState.apiConfiguration?.[field]
+
+				// Check for strict equality first
+				if (previousValue === value) {
 					return prevState
 				}
 
-				const previousValue = prevState.apiConfiguration?.[field]
+				// Special handling for optional boolean fields where undefined is functionally equivalent to false
+				// If the previous value was undefined and the new value is false, consider it no change.
+				// This prevents false positives for change detection when an optional boolean is explicitly set to false.
+				if (
+					(field === "enableUrlContext" || field === "enableGrounding") &&
+					previousValue === undefined &&
+					value === false
+				) {
+					return prevState
+				}
 
 				// Don't treat initial sync from undefined to a defined value as a user change
 				// This prevents the dirty state when the component initializes and auto-syncs the model ID
-				const isInitialSync = previousValue === undefined && value !== undefined
+				// This check should NOT apply to the specific boolean fields where undefined is treated as false.
+				const isInitialSync =
+					previousValue === undefined &&
+					value !== undefined &&
+					!(field === "enableUrlContext" || field === "enableGrounding") // Exclude these fields from initial sync logic
 
 				if (!isInitialSync) {
 					setChangeDetected(true)

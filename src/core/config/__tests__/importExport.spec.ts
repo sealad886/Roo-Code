@@ -135,7 +135,14 @@ describe("importExport", () => {
 
 			const previousProviderProfiles = {
 				currentApiConfigName: "default",
-				apiConfigs: { default: { apiProvider: "anthropic" as ProviderName, id: "default-id" } },
+				apiConfigs: {
+					default: {
+						apiProvider: "anthropic" as ProviderName,
+						id: "default-id",
+						enableUrlContext: false,
+						enableGrounding: false,
+					},
+				},
 			}
 
 			mockProviderSettingsManager.export.mockResolvedValue(previousProviderProfiles)
@@ -160,7 +167,12 @@ describe("importExport", () => {
 			expect(mockProviderSettingsManager.import).toHaveBeenCalledWith({
 				currentApiConfigName: "test",
 				apiConfigs: {
-					default: { apiProvider: "anthropic" as ProviderName, id: "default-id" },
+					default: {
+						apiProvider: "anthropic" as ProviderName,
+						id: "default-id",
+						enableUrlContext: false,
+						enableGrounding: false,
+					},
 					test: { apiProvider: "openai" as ProviderName, apiKey: "test-key", id: "test-id" },
 				},
 				modeApiConfigs: {},
@@ -212,7 +224,14 @@ describe("importExport", () => {
 
 			const previousProviderProfiles = {
 				currentApiConfigName: "default",
-				apiConfigs: { default: { apiProvider: "anthropic" as ProviderName, id: "default-id" } },
+				apiConfigs: {
+					default: {
+						apiProvider: "anthropic" as ProviderName,
+						id: "default-id",
+						enableUrlContext: false,
+						enableGrounding: false,
+					},
+				},
 			}
 
 			mockProviderSettingsManager.export.mockResolvedValue(previousProviderProfiles)
@@ -236,7 +255,12 @@ describe("importExport", () => {
 			expect(mockProviderSettingsManager.import).toHaveBeenCalledWith({
 				currentApiConfigName: "test",
 				apiConfigs: {
-					default: { apiProvider: "anthropic" as ProviderName, id: "default-id" },
+					default: {
+						apiProvider: "anthropic" as ProviderName,
+						id: "default-id",
+						enableUrlContext: false,
+						enableGrounding: false,
+					},
 					test: { apiProvider: "openai" as ProviderName, apiKey: "test-key", id: "test-id" },
 				},
 				modeApiConfigs: {},
@@ -287,7 +311,12 @@ describe("importExport", () => {
 
 		it("should not clobber existing api configs", async () => {
 			const providerSettingsManager = new ProviderSettingsManager(mockExtensionContext)
-			await providerSettingsManager.saveConfig("openai", { apiProvider: "openai", id: "openai" })
+			await providerSettingsManager.saveConfig("openai", {
+				apiProvider: "openai",
+				id: "openai",
+				enableUrlContext: false,
+				enableGrounding: false,
+			})
 
 			const configs = await providerSettingsManager.listConfig()
 			expect(configs[0].name).toBe("default")
@@ -371,7 +400,14 @@ describe("importExport", () => {
 
 			const previousProviderProfiles = {
 				currentApiConfigName: "default",
-				apiConfigs: { default: { apiProvider: "anthropic" as ProviderName, id: "default-id" } },
+				apiConfigs: {
+					default: {
+						apiProvider: "anthropic" as ProviderName,
+						id: "default-id",
+						enableUrlContext: false,
+						enableGrounding: false,
+					},
+				},
 			}
 
 			mockProviderSettingsManager.export.mockResolvedValue(previousProviderProfiles)
@@ -396,7 +432,12 @@ describe("importExport", () => {
 			expect(mockProviderSettingsManager.import).toHaveBeenCalledWith({
 				currentApiConfigName: "test",
 				apiConfigs: {
-					default: { apiProvider: "anthropic" as ProviderName, id: "default-id" },
+					default: {
+						apiProvider: "anthropic" as ProviderName,
+						id: "default-id",
+						enableUrlContext: false,
+						enableGrounding: false,
+					},
 					test: { apiProvider: "openai" as ProviderName, apiKey: "test-key", id: "test-id" },
 				},
 				modeApiConfigs: {},
@@ -464,7 +505,14 @@ describe("importExport", () => {
 
 			const mockProviderProfiles = {
 				currentApiConfigName: "test",
-				apiConfigs: { test: { apiProvider: "openai" as ProviderName, id: "test-id" } },
+				apiConfigs: {
+					test: {
+						apiProvider: "openai" as ProviderName,
+						id: "test-id",
+						enableUrlContext: false,
+						enableGrounding: false,
+					},
+				},
 				migrations: { rateLimitSecondsMigrated: false },
 			}
 
@@ -499,7 +547,14 @@ describe("importExport", () => {
 
 			const mockProviderProfiles = {
 				currentApiConfigName: "test",
-				apiConfigs: { test: { apiProvider: "openai" as ProviderName, id: "test-id" } },
+				apiConfigs: {
+					test: {
+						apiProvider: "openai" as ProviderName,
+						id: "test-id",
+						enableUrlContext: false,
+						enableGrounding: false,
+					},
+				},
 				migrations: { rateLimitSecondsMigrated: false },
 			}
 
@@ -531,7 +586,14 @@ describe("importExport", () => {
 
 			mockProviderSettingsManager.export.mockResolvedValue({
 				currentApiConfigName: "test",
-				apiConfigs: { test: { apiProvider: "openai" as ProviderName, id: "test-id" } },
+				apiConfigs: {
+					test: {
+						apiProvider: "openai" as ProviderName,
+						id: "test-id",
+						enableUrlContext: false,
+						enableGrounding: false,
+					},
+				},
 				migrations: { rateLimitSecondsMigrated: false },
 			})
 
@@ -561,7 +623,14 @@ describe("importExport", () => {
 
 			mockProviderSettingsManager.export.mockResolvedValue({
 				currentApiConfigName: "test",
-				apiConfigs: { test: { apiProvider: "openai" as ProviderName, id: "test-id" } },
+				apiConfigs: {
+					test: {
+						apiProvider: "openai" as ProviderName,
+						id: "test-id",
+						enableUrlContext: false,
+						enableGrounding: false,
+					},
+				},
 				migrations: { rateLimitSecondsMigrated: false },
 			})
 
@@ -609,11 +678,15 @@ describe("importExport", () => {
 							apiProvider: "openai" as ProviderName,
 							id: "openai-compatible-id",
 							// Remove OpenAI Compatible settings from provider profile
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 						"ollama-provider": {
 							apiProvider: "ollama" as ProviderName,
 							id: "ollama-id",
 							codebaseIndexOllamaBaseUrl: "http://localhost:11434",
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 					},
 					modeApiConfigs: {},
@@ -659,6 +732,8 @@ describe("importExport", () => {
 							apiProvider: "openai" as ProviderName,
 							id: "test-id",
 							// Remove OpenAI Compatible settings from provider profile
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 					},
 					modeApiConfigs: {},
@@ -706,15 +781,21 @@ describe("importExport", () => {
 							apiProvider: "openai" as ProviderName,
 							id: "openai-compatible-id",
 							// Remove OpenAI Compatible settings from provider profile
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 						"ollama-provider": {
 							apiProvider: "ollama" as ProviderName,
 							id: "ollama-id",
 							codebaseIndexOllamaBaseUrl: "http://localhost:11434",
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 						"anthropic-provider": {
 							apiProvider: "anthropic" as ProviderName,
 							id: "anthropic-id",
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 					},
 					modeApiConfigs: {},
@@ -766,6 +847,8 @@ describe("importExport", () => {
 							apiProvider: "openai" as ProviderName,
 							id: "incomplete-id",
 							// Missing codebaseIndexOpenAiCompatibleBaseUrl and dimension
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 					},
 					modeApiConfigs: {},
@@ -812,6 +895,8 @@ describe("importExport", () => {
 							apiProvider: "openai" as ProviderName,
 							id: "openai-id",
 							// Regular OpenAI provider without OpenAI Compatible settings
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 					},
 					modeApiConfigs: {},
@@ -854,6 +939,8 @@ describe("importExport", () => {
 						"other-provider": {
 							apiProvider: "openai" as ProviderName,
 							id: "other-id",
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 					},
 					modeApiConfigs: {},
@@ -925,7 +1012,14 @@ describe("importExport", () => {
 
 				const previousProviderProfiles = {
 					currentApiConfigName: "default",
-					apiConfigs: { default: { apiProvider: "anthropic" as ProviderName, id: "default-id" } },
+					apiConfigs: {
+						default: {
+							apiProvider: "anthropic" as ProviderName,
+							id: "default-id",
+							enableUrlContext: false,
+							enableGrounding: false,
+						},
+					},
 				}
 
 				mockProviderSettingsManager.export.mockResolvedValue(previousProviderProfiles)
@@ -994,7 +1088,14 @@ describe("importExport", () => {
 
 				const previousProviderProfiles = {
 					currentApiConfigName: "default",
-					apiConfigs: { default: { apiProvider: "anthropic" as ProviderName, id: "default-id" } },
+					apiConfigs: {
+						default: {
+							apiProvider: "anthropic" as ProviderName,
+							id: "default-id",
+							enableUrlContext: false,
+							enableGrounding: false,
+						},
+					},
 				}
 
 				mockProviderSettingsManager.export.mockResolvedValue(previousProviderProfiles)
@@ -1046,7 +1147,14 @@ describe("importExport", () => {
 
 				const previousProviderProfiles = {
 					currentApiConfigName: "default",
-					apiConfigs: { default: { apiProvider: "anthropic" as ProviderName, id: "default-id" } },
+					apiConfigs: {
+						default: {
+							apiProvider: "anthropic" as ProviderName,
+							id: "default-id",
+							enableUrlContext: false,
+							enableGrounding: false,
+						},
+					},
 				}
 
 				mockProviderSettingsManager.export.mockResolvedValue(previousProviderProfiles)
@@ -1085,6 +1193,8 @@ describe("importExport", () => {
 						apiProvider: "openai" as ProviderName,
 						id: "test-id",
 						// Remove OpenAI Compatible settings from provider profile
+						enableUrlContext: false,
+						enableGrounding: false,
 					},
 				},
 				modeApiConfigs: {},
@@ -1136,7 +1246,14 @@ describe("importExport", () => {
 			vi.clearAllMocks()
 			mockProviderSettingsManager.export.mockResolvedValue({
 				currentApiConfigName: "default",
-				apiConfigs: { default: { apiProvider: "anthropic" as ProviderName, id: "default-id" } },
+				apiConfigs: {
+					default: {
+						apiProvider: "anthropic" as ProviderName,
+						id: "default-id",
+						enableUrlContext: false,
+						enableGrounding: false,
+					},
+				},
 			})
 			mockProviderSettingsManager.listConfig.mockResolvedValue([
 				{ name: "test-openai-compatible", id: "test-id", apiProvider: "openai" as ProviderName },
@@ -1178,6 +1295,8 @@ describe("importExport", () => {
 						apiProvider: "openai" as ProviderName,
 						id: "test-id",
 						// Remove OpenAI Compatible settings from provider profile
+						enableUrlContext: false,
+						enableGrounding: false,
 					},
 				},
 				modeApiConfigs: {},
@@ -1224,7 +1343,14 @@ describe("importExport", () => {
 			vi.clearAllMocks()
 			mockProviderSettingsManager.export.mockResolvedValue({
 				currentApiConfigName: "default",
-				apiConfigs: { default: { apiProvider: "anthropic" as ProviderName, id: "default-id" } },
+				apiConfigs: {
+					default: {
+						apiProvider: "anthropic" as ProviderName,
+						id: "default-id",
+						enableUrlContext: false,
+						enableGrounding: false,
+					},
+				},
 			})
 			mockProviderSettingsManager.listConfig.mockResolvedValue([
 				{ name: "test-openai-compatible", id: "test-id", apiProvider: "openai" as ProviderName },
@@ -1253,6 +1379,8 @@ describe("importExport", () => {
 						apiProvider: "openai" as ProviderName,
 						id: "test-id",
 						// Remove OpenAI Compatible settings from provider profile
+						enableUrlContext: false,
+						enableGrounding: false,
 					},
 				},
 				modeApiConfigs: {},
@@ -1340,6 +1468,8 @@ describe("importExport", () => {
 					"provider-b": {
 						apiProvider: "anthropic" as ProviderName,
 						id: "provider-b-id",
+						enableUrlContext: false,
+						enableGrounding: false,
 					},
 				},
 			}
@@ -1420,6 +1550,8 @@ describe("importExport", () => {
 					"anthropic-provider": {
 						apiProvider: "anthropic" as ProviderName,
 						id: "anthropic-id",
+						enableUrlContext: false,
+						enableGrounding: false,
 					},
 				},
 			}
@@ -1475,11 +1607,15 @@ describe("importExport", () => {
 						"anthropic-provider": {
 							apiProvider: "anthropic" as ProviderName,
 							id: "anthropic-id",
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 						"openai-compatible-provider": {
 							apiProvider: "openai" as ProviderName,
 							id: "openai-compatible-id",
 							// NO OpenAI Compatible settings in provider profiles
+							enableUrlContext: false,
+							enableGrounding: false,
 						},
 					},
 					modeApiConfigs: {},
@@ -1505,6 +1641,8 @@ describe("importExport", () => {
 					default: {
 						apiProvider: "openai" as ProviderName,
 						id: "default-id",
+						enableUrlContext: false,
+						enableGrounding: false,
 					},
 				},
 			}
@@ -1568,6 +1706,8 @@ describe("importExport", () => {
 						apiProvider: "openrouter" as ProviderName,
 						id: "openrouter-id",
 						// OpenRouter doesn't have OpenAI Compatible fields
+						enableUrlContext: false,
+						enableGrounding: false,
 					},
 				},
 				modeApiConfigs: {},

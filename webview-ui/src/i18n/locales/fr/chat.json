@@ -314,6 +314,11 @@
 			"title": "Limite de requêtes auto-approuvées atteinte",
 			"description": "Roo a atteint la limite auto-approuvée de {{count}} requête(s) API. Souhaitez-vous réinitialiser le compteur et poursuivre la tâche ?",
 			"button": "Réinitialiser et continuer"
+		},
+		"autoApprovedCostLimitReached": {
+			"title": "Limite de coût en auto-approbation atteinte",
+			"description": "Roo a atteint la limite de coût auto-approuvée de ${{count}}. Souhaitez-vous réinitialiser le coût et poursuivre la tâche ?",
+			"button": "Réinitialiser et Continuer"
 		}
 	},
 	"codebaseSearch": {
@@ -355,7 +360,7 @@
 	"slashCommands": {
 		"tooltip": "Gérer les commandes slash",
 		"title": "Commandes Slash",
-		"description": "Créez des commandes slash personnalisées pour accéder rapidement aux prompts et flux de travail fréquemment utilisés.",
+		"description": "Créez des commandes slash personnalisées pour accéder rapidement aux prompts et flux de travail fréquemment utilisés. <DocsLink>Documentation</DocsLink>",
 		"globalCommands": "Commandes Globales",
 		"workspaceCommands": "Commandes de l'Espace de Travail",
 		"globalCommand": "Commande globale",

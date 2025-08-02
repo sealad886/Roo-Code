@@ -332,6 +332,11 @@
 			"title": "Auto-Approved Request Limit Reached",
 			"description": "Roo has reached the auto-approved limit of {{count}} API request(s). Would you like to reset the count and proceed with the task?",
 			"button": "Reset and Continue"
+		},
+		"autoApprovedCostLimitReached": {
+			"title": "Auto-Approved Cost Limit Reached",
+			"description": "Roo has reached the auto-approved cost limit of ${{count}}. Would you like to reset the cost and proceed with the task?",
+			"button": "Reset and Continue"
 		}
 	},
 	"indexingStatus": {
@@ -355,7 +360,7 @@
 	"slashCommands": {
 		"tooltip": "Manage slash commands",
 		"title": "Slash Commands",
-		"description": "Create custom slash commands for quick access to frequently used prompts and workflows.",
+		"description": "Create custom slash commands for quick access to frequently used prompts and workflows. <DocsLink>Docs</DocsLink>",
 		"globalCommands": "Global Commands",
 		"workspaceCommands": "Workspace Commands",
 		"globalCommand": "Global command",

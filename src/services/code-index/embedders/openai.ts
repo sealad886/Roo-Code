@@ -12,7 +12,7 @@ import { getModelQueryPrefix } from "../../../shared/embeddingModels"
 import { t } from "../../../i18n"
 import { withValidationErrorHandling, formatEmbeddingError, HttpError } from "../shared/validation-helpers"
 import { TelemetryEventName } from "@roo-code/types"
-import { TelemetryService } from "@roo-code/telemetry"
+import { crashReportService } from "../crash-report-service"
 
 /**
  * OpenAI implementation of the embedder interface with batching and rate limiting
@@ -159,10 +159,7 @@ export class OpenAiEmbedder extends OpenAiNativeHandler implements IEmbedder {
 				}
 
 				// Capture telemetry before reformatting the error
-				TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-					error: error instanceof Error ? error.message : String(error),
-					stack: error instanceof Error ? error.stack : undefined,
-					location: "OpenAiEmbedder:_embedBatchWithRetries",
+				crashReportService.reportError(error, "OpenAiEmbedder:_embedBatchWithRetries", {
 					attempt: attempts + 1,
 				})
 
@@ -201,11 +198,7 @@ export class OpenAiEmbedder extends OpenAiNativeHandler implements IEmbedder {
 				return { valid: true }
 			} catch (error) {
 				// Capture telemetry for validation errors
-				TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-					error: error instanceof Error ? error.message : String(error),
-					stack: error instanceof Error ? error.stack : undefined,
-					location: "OpenAiEmbedder:validateConfiguration",
-				})
+				crashReportService.reportError(error, "OpenAiEmbedder:validateConfiguration")
 				throw error
 			}
 		}, "openai")

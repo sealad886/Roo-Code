@@ -8,6 +8,7 @@ import { CacheManager } from "./cache-manager"
 import { TelemetryService } from "@roo-code/telemetry"
 import { TelemetryEventName } from "@roo-code/types"
 import { t } from "../../i18n"
+import { crashReportService } from "./crash-report-service"
 
 /**
  * Manages the code indexing workflow, coordinating between different services and managers.
@@ -15,6 +16,11 @@ import { t } from "../../i18n"
 export class CodeIndexOrchestrator {
 	private _fileWatcherSubscriptions: vscode.Disposable[] = []
 	private _isProcessing: boolean = false
+	private circuitBreakerState: "closed" | "open" | "half-open" = "closed"
+	private failureCount = 0
+	private lastFailureTime: number | null = null
+	private readonly failureThreshold = 5 // Open circuit after 5 failures
+	private readonly resetTimeout = 30000 // 30 seconds
 
 	constructor(
 		private readonly configManager: CodeIndexConfigManager,
@@ -77,12 +83,7 @@ export class CodeIndexOrchestrator {
 				}),
 			]
 		} catch (error) {
-			console.error("[CodeIndexOrchestrator] Failed to start file watcher:", error)
-			TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-				error: error instanceof Error ? error.message : String(error),
-				stack: error instanceof Error ? error.stack : undefined,
-				location: "_startWatcher",
-			})
+			crashReportService.reportError(error, "_startWatcher")
 			throw error
 		}
 	}
@@ -95,6 +96,14 @@ export class CodeIndexOrchestrator {
 	 * Initiates the indexing process (initial scan and starts watcher).
 	 */
 	public async startIndexing(): Promise<void> {
+		if (this.circuitBreakerState === "open") {
+			if (this.lastFailureTime && Date.now() - this.lastFailureTime > this.resetTimeout) {
+				this.circuitBreakerState = "half-open"
+			} else {
+				console.warn("[CodeIndexOrchestrator] Circuit breaker is open. Skipping indexing.")
+				return
+			}
+		}
 		// Check if workspace is available first
 		if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
 			this.stateManager.setSystemState("Error", t("embeddings:orchestrator.indexingRequiresWorkspace"))
@@ -203,7 +212,15 @@ export class CodeIndexOrchestrator {
 			await this._startWatcher()
 
 			this.stateManager.setSystemState("Indexed", t("embeddings:orchestrator.fileWatcherStarted"))
+			this.failureCount = 0
+			this.circuitBreakerState = "closed"
 		} catch (error: any) {
+			this.failureCount++
+			this.lastFailureTime = Date.now()
+			if (this.failureCount >= this.failureThreshold) {
+				this.circuitBreakerState = "open"
+			}
+			crashReportService.reportError(error, "startIndexing")
 			console.error("[CodeIndexOrchestrator] Error during indexing:", error)
 			TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
 				error: error instanceof Error ? error.message : String(error),
@@ -266,12 +283,7 @@ export class CodeIndexOrchestrator {
 					console.warn("[CodeIndexOrchestrator] Service not configured, skipping vector collection clear.")
 				}
 			} catch (error: any) {
-				console.error("[CodeIndexOrchestrator] Failed to clear vector collection:", error)
-				TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-					error: error instanceof Error ? error.message : String(error),
-					stack: error instanceof Error ? error.stack : undefined,
-					location: "clearIndexData",
-				})
+				crashReportService.reportError(error, "clearIndexData")
 				this.stateManager.setSystemState("Error", `Failed to clear vector collection: ${error.message}`)
 			}
 

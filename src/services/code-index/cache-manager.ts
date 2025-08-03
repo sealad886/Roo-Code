@@ -3,7 +3,7 @@ import { createHash } from "crypto"
 import { ICacheManager } from "./interfaces/cache"
 import debounce from "lodash.debounce"
 import { safeWriteJson } from "../../utils/safeWriteJson"
-import { TelemetryService } from "@roo-code/telemetry"
+import { crashReportService } from "./crash-report-service"
 import { TelemetryEventName } from "@roo-code/types"
 
 /**
@@ -41,11 +41,7 @@ export class CacheManager implements ICacheManager {
 			this.fileHashes = JSON.parse(cacheData.toString())
 		} catch (error) {
 			this.fileHashes = {}
-			TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-				error: error instanceof Error ? error.message : String(error),
-				stack: error instanceof Error ? error.stack : undefined,
-				location: "initialize",
-			})
+			crashReportService.reportError(error, "initialize")
 		}
 	}
 
@@ -56,12 +52,7 @@ export class CacheManager implements ICacheManager {
 		try {
 			await safeWriteJson(this.cachePath.fsPath, this.fileHashes)
 		} catch (error) {
-			console.error("Failed to save cache:", error)
-			TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-				error: error instanceof Error ? error.message : String(error),
-				stack: error instanceof Error ? error.stack : undefined,
-				location: "_performSave",
-			})
+			crashReportService.reportError(error, "_performSave")
 		}
 	}
 
@@ -73,12 +64,7 @@ export class CacheManager implements ICacheManager {
 			await safeWriteJson(this.cachePath.fsPath, {})
 			this.fileHashes = {}
 		} catch (error) {
-			console.error("Failed to clear cache file:", error, this.cachePath)
-			TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-				error: error instanceof Error ? error.message : String(error),
-				stack: error instanceof Error ? error.stack : undefined,
-				location: "clearCacheFile",
-			})
+			crashReportService.reportError(error, "clearCacheFile", { cachePath: this.cachePath.fsPath })
 		}
 	}
 

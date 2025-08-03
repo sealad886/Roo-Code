@@ -12,8 +12,9 @@ import { CodeIndexConfigManager } from "./config-manager"
 import { CacheManager } from "./cache-manager"
 import { Ignore } from "ignore"
 import { t } from "../../i18n"
-import { TelemetryService } from "@roo-code/telemetry"
 import { TelemetryEventName } from "@roo-code/types"
+import { TelemetryService } from "@roo-code/telemetry"
+import { crashReportService } from "./crash-report-service"
 
 /**
  * Factory class responsible for creating and configuring code indexing service dependencies.
@@ -86,12 +87,8 @@ export class CodeIndexServiceFactory {
 		try {
 			return await embedder.validateConfiguration()
 		} catch (error) {
-			// Capture telemetry for the error
-			TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-				error: error instanceof Error ? error.message : String(error),
-				stack: error instanceof Error ? error.stack : undefined,
-				location: "validateEmbedder",
-			})
+			// Report error via centralized crash reporting service
+			crashReportService.reportError(error as Error, "service-factory")
 
 			// If validation throws an exception, preserve the original error message
 			return {
@@ -179,6 +176,7 @@ export class CodeIndexServiceFactory {
 		parser: ICodeParser
 		scanner: DirectoryScanner
 		fileWatcher: IFileWatcher
+		crashReportService: typeof crashReportService
 	} {
 		if (!this.configManager.isFeatureConfigured) {
 			throw new Error(t("embeddings:serviceFactory.codeIndexingNotConfigured"))
@@ -196,6 +194,7 @@ export class CodeIndexServiceFactory {
 			parser,
 			scanner,
 			fileWatcher,
+			crashReportService,
 		}
 	}
 }

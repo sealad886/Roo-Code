@@ -10,6 +10,7 @@ import { MAX_BLOCK_CHARS, MIN_BLOCK_CHARS, MIN_CHUNK_REMAINDER_CHARS, MAX_CHARS_
 import { TelemetryService } from "@roo-code/telemetry"
 import { TelemetryEventName } from "@roo-code/types"
 import { sanitizeErrorMessage } from "../shared/validation-helpers"
+import { crashReportService } from "../crash-report-service"
 
 /**
  * Implementation of the code parser interface
@@ -53,12 +54,7 @@ export class CodeParser implements ICodeParser {
 				content = await readFile(filePath, "utf8")
 				fileHash = this.createFileHash(content)
 			} catch (error) {
-				console.error(`Error reading file ${filePath}:`, error)
-				TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-					error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)),
-					stack: error instanceof Error ? sanitizeErrorMessage(error.stack || "") : undefined,
-					location: "parseFile",
-				})
+				crashReportService.reportError(error, "parseFile", { filePath })
 				return []
 			}
 		}
@@ -113,12 +109,7 @@ export class CodeParser implements ICodeParser {
 				try {
 					await pendingLoad
 				} catch (error) {
-					console.error(`Error in pending parser load for ${filePath}:`, error)
-					TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-						error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)),
-						stack: error instanceof Error ? sanitizeErrorMessage(error.stack || "") : undefined,
-						location: "parseContent:loadParser",
-					})
+					crashReportService.reportError(error, "parseContent:loadParser", { filePath })
 					return []
 				}
 			} else {
@@ -130,12 +121,7 @@ export class CodeParser implements ICodeParser {
 						this.loadedParsers = { ...this.loadedParsers, ...newParsers }
 					}
 				} catch (error) {
-					console.error(`Error loading language parser for ${filePath}:`, error)
-					TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-						error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)),
-						stack: error instanceof Error ? sanitizeErrorMessage(error.stack || "") : undefined,
-						location: "parseContent:loadParser",
-					})
+					crashReportService.reportError(error, "parseContent:loadParser", { filePath })
 					return []
 				} finally {
 					this.pendingLoads.delete(ext)

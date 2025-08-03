@@ -29,6 +29,7 @@ import { isPathInIgnoredDirectory } from "../../glob/ignore-utils"
 import { TelemetryService } from "@roo-code/telemetry"
 import { TelemetryEventName } from "@roo-code/types"
 import { sanitizeErrorMessage } from "../shared/validation-helpers"
+import { crashReportService } from "../crash-report-service"
 
 export class DirectoryScanner implements IDirectoryScanner {
 	constructor(
@@ -215,12 +216,7 @@ export class DirectoryScanner implements IDirectoryScanner {
 						await this.cacheManager.updateHash(filePath, currentFileHash)
 					}
 				} catch (error) {
-					console.error(`Error processing file ${filePath} in workspace ${scanWorkspace}:`, error)
-					TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-						error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)),
-						stack: error instanceof Error ? sanitizeErrorMessage(error.stack || "") : undefined,
-						location: "scanDirectory:processFile",
-					})
+					crashReportService.reportError(error, "scanDirectory:processFile", { filePath, scanWorkspace })
 					if (onError) {
 						onError(
 							error instanceof Error
@@ -365,15 +361,10 @@ export class DirectoryScanner implements IDirectoryScanner {
 							deleteError,
 						)
 
-						TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-							error: sanitizeErrorMessage(errorMessage),
-							stack:
-								deleteError instanceof Error
-									? sanitizeErrorMessage(deleteError.stack || "")
-									: undefined,
-							location: "processBatch:deletePointsByMultipleFilePaths",
+						crashReportService.reportError(deleteError, "processBatch:deletePointsByMultipleFilePaths", {
 							fileCount: uniqueFilePaths.length,
 							errorStatus: errorStatus,
+							scanWorkspace,
 						})
 
 						// Re-throw with workspace context
@@ -419,16 +410,10 @@ export class DirectoryScanner implements IDirectoryScanner {
 				success = true
 			} catch (error) {
 				lastError = error as Error
-				console.error(
-					`[DirectoryScanner] Error processing batch (attempt ${attempts}) in workspace ${scanWorkspace}:`,
-					error,
-				)
-				TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-					error: sanitizeErrorMessage(error instanceof Error ? error.message : String(error)),
-					stack: error instanceof Error ? sanitizeErrorMessage(error.stack || "") : undefined,
-					location: "processBatch:retry",
+				crashReportService.reportError(error, "processBatch:retry", {
 					attemptNumber: attempts,
 					batchSize: batchBlocks.length,
+					scanWorkspace,
 				})
 
 				if (attempts < MAX_BATCH_RETRIES) {

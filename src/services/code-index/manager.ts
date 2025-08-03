@@ -15,6 +15,7 @@ import path from "path"
 import { t } from "../../i18n"
 import { TelemetryService } from "@roo-code/telemetry"
 import { TelemetryEventName } from "@roo-code/types"
+import { CrashReportService } from "./crash-report-service"
 
 export class CodeIndexManager {
 	// --- Singleton Implementation ---
@@ -27,6 +28,7 @@ export class CodeIndexManager {
 	private _orchestrator: CodeIndexOrchestrator | undefined
 	private _searchService: CodeIndexSearchService | undefined
 	private _cacheManager: CacheManager | undefined
+	private _crashReportService: CrashReportService | undefined
 
 	public static getInstance(context: vscode.ExtensionContext): CodeIndexManager | undefined {
 		// Use first workspace folder consistently
@@ -70,7 +72,13 @@ export class CodeIndexManager {
 	}
 
 	private assertInitialized() {
-		if (!this._configManager || !this._orchestrator || !this._searchService || !this._cacheManager) {
+		if (
+			!this._configManager ||
+			!this._orchestrator ||
+			!this._searchService ||
+			!this._cacheManager ||
+			!this._crashReportService
+		) {
 			throw new Error("CodeIndexManager not initialized. Call initialize() first.")
 		}
 	}
@@ -228,6 +236,7 @@ export class CodeIndexManager {
 		// Clear existing services to ensure clean state
 		this._orchestrator = undefined
 		this._searchService = undefined
+		this._crashReportService = undefined
 
 		// (Re)Initialize service factory
 		this._serviceFactory = new CodeIndexServiceFactory(
@@ -251,16 +260,13 @@ export class CodeIndexManager {
 			ignoreInstance.add(".gitignore")
 		} catch (error) {
 			// Should never happen: reading file failed even though it exists
-			console.error("Unexpected error loading .gitignore:", error)
-			TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-				error: error instanceof Error ? error.message : String(error),
-				stack: error instanceof Error ? error.stack : undefined,
-				location: "_recreateServices",
+			this._crashReportService?.reportError(error, "_recreateServices", {
+				ignorePath,
 			})
 		}
 
 		// (Re)Create shared service instances
-		const { embedder, vectorStore, scanner, fileWatcher } = this._serviceFactory.createServices(
+		const { embedder, vectorStore, scanner, fileWatcher, crashReportService } = this._serviceFactory.createServices(
 			this.context,
 			this._cacheManager!,
 			ignoreInstance,
@@ -286,6 +292,7 @@ export class CodeIndexManager {
 		)
 
 		// (Re)Initialize search service
+		this._crashReportService = crashReportService
 		this._searchService = new CodeIndexSearchService(
 			this._configManager!,
 			this._stateManager,
@@ -333,12 +340,7 @@ export class CodeIndexManager {
 					await this._recreateServices()
 				} catch (error) {
 					// Error state already set in _recreateServices
-					console.error("Failed to recreate services:", error)
-					TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
-						error: error instanceof Error ? error.message : String(error),
-						stack: error instanceof Error ? error.stack : undefined,
-						location: "handleSettingsChange",
-					})
+					this._crashReportService?.reportError(error, "handleSettingsChange")
 					// Re-throw the error so the caller knows validation failed
 					throw error
 				}

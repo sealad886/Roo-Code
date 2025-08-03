@@ -785,7 +785,7 @@ describe("CodeIndexServiceFactory", () => {
 			expect(mockEmbedderInstance.validateConfiguration).toHaveBeenCalled()
 		})
 
-		it("should handle validation exceptions", async () => {
+		it("should handle validation exceptions (reported via crashReportService)", async () => {
 			// Arrange
 			const testConfig = {
 				embedderProvider: "openai",
@@ -799,6 +799,9 @@ describe("CodeIndexServiceFactory", () => {
 			const networkError = new Error("Network error")
 			mockEmbedderInstance.validateConfiguration.mockRejectedValue(networkError)
 
+			// Spy on console to confirm structured crash log occurred
+			const consoleErrorSpy = vitest.spyOn(console, "error").mockImplementation(() => {})
+
 			// Act
 			const embedder = factory.createEmbedder()
 			const result = await factory.validateEmbedder(embedder)
@@ -809,6 +812,15 @@ describe("CodeIndexServiceFactory", () => {
 				error: "Network error",
 			})
 			expect(mockEmbedderInstance.validateConfiguration).toHaveBeenCalled()
+
+			// Expect structured crash reporting line from service-factory
+			expect(consoleErrorSpy).toHaveBeenCalled()
+			const call = (consoleErrorSpy as unknown as { mock: { calls: any[][] } }).mock.calls.find(
+				(args) =>
+					typeof args[0] === "string" && args[0].startsWith("[CrashReportService] Error at service-factory:"),
+			)
+			expect(call, "expected structured crash report log for service-factory validation").toBeTruthy()
+			consoleErrorSpy.mockRestore()
 		})
 
 		it("should return error for invalid embedder configuration", async () => {

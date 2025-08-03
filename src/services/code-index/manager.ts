@@ -272,6 +272,9 @@ export class CodeIndexManager {
 			ignoreInstance,
 		)
 
+		// Initialize crash report service first so it can be used for error reporting
+		this._crashReportService = crashReportService
+
 		// Validate embedder configuration before proceeding
 		const validationResult = await this._serviceFactory.validateEmbedder(embedder)
 		if (!validationResult.valid) {
@@ -292,7 +295,6 @@ export class CodeIndexManager {
 		)
 
 		// (Re)Initialize search service
-		this._crashReportService = crashReportService
 		this._searchService = new CodeIndexSearchService(
 			this._configManager!,
 			this._stateManager,

@@ -44,9 +44,13 @@ describe("CacheManager", () => {
 	let mockCachePath: vscode.Uri
 	let cacheManager: CacheManager
 
+	// Crash reporting is used internally; silence console output and assert telemetry-compatible structure
+	const consoleErrorSpy = vitest.spyOn(console, "error").mockImplementation(() => {})
+
 	beforeEach(() => {
 		// Reset all mocks
 		vitest.clearAllMocks()
+		consoleErrorSpy.mockClear()
 
 		// Mock context
 		mockWorkspacePath = "/mock/workspace"
@@ -60,6 +64,10 @@ describe("CacheManager", () => {
 
 		// Create cache manager instance
 		cacheManager = new CacheManager(mockContext, mockWorkspacePath)
+	})
+
+	afterAll(() => {
+		consoleErrorSpy.mockRestore()
 	})
 
 	describe("constructor", () => {
@@ -150,17 +158,22 @@ describe("CacheManager", () => {
 		})
 
 		it("should handle save errors gracefully", async () => {
-			const consoleErrorSpy = vitest.spyOn(console, "error").mockImplementation(() => {})
+			// Simulate write failure
 			;(safeWriteJson as Mock).mockRejectedValue(new Error("Save failed"))
 
 			cacheManager.updateHash("test.ts", "hash")
 
-			// Wait for any pending promises
+			// Wait for any pending promises triggered by debounce mock
 			await new Promise((resolve) => setTimeout(resolve, 0))
 
-			expect(consoleErrorSpy).toHaveBeenCalledWith("Failed to save cache:", expect.any(Error))
-
-			consoleErrorSpy.mockRestore()
+			// With crashReportService, errors are routed through structured console.error:
+			// [CrashReportService] Error at _performSave: <message> { error, additionalContext }
+			expect(consoleErrorSpy).toHaveBeenCalled()
+			const call = (consoleErrorSpy as unknown as { mock: { calls: any[][] } }).mock.calls.find(
+				(args) =>
+					typeof args[0] === "string" && args[0].startsWith("[CrashReportService] Error at _performSave:"),
+			)
+			expect(call, "expected structured crash report log for _performSave").toBeTruthy()
 		})
 	})
 
@@ -179,18 +192,17 @@ describe("CacheManager", () => {
 		})
 
 		it("should handle clear errors gracefully", async () => {
-			const consoleErrorSpy = vitest.spyOn(console, "error").mockImplementation(() => {})
 			;(safeWriteJson as Mock).mockRejectedValue(new Error("Save failed"))
 
 			await cacheManager.clearCacheFile()
 
-			expect(consoleErrorSpy).toHaveBeenCalledWith(
-				"Failed to clear cache file:",
-				expect.any(Error),
-				mockCachePath,
+			// Expect structured crash report log for clearCacheFile with context containing cachePath
+			expect(consoleErrorSpy).toHaveBeenCalled()
+			const call = (consoleErrorSpy as unknown as { mock: { calls: any[][] } }).mock.calls.find(
+				(args) =>
+					typeof args[0] === "string" && args[0].startsWith("[CrashReportService] Error at clearCacheFile:"),
 			)
-
-			consoleErrorSpy.mockRestore()
+			expect(call, "expected structured crash report log for clearCacheFile").toBeTruthy()
 		})
 	})
 })

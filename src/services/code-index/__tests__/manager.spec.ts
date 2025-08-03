@@ -175,9 +175,15 @@ describe("CodeIndexManager - handleSettingsChange regression", () => {
 			}
 			;(manager as any)._cacheManager = mockCacheManager
 
-			// Simulate an initialized manager by setting the required properties
+			// Simulate an initialized manager by setting the required properties.
+			// CodeIndexManager.isInitialized requires the following to be truthy:
+			// _configManager, _orchestrator, _searchService, _cacheManager, and _crashReportService
 			;(manager as any)._orchestrator = { stopWatcher: vi.fn() }
 			;(manager as any)._searchService = {}
+
+			// Provide minimal viable instances for remaining dependencies
+			;(manager as any)._cacheManager = { initialize: vi.fn(), clearCacheFile: vi.fn() }
+			;(manager as any)._crashReportService = { reportError: vi.fn() }
 
 			// Verify manager is considered initialized
 			expect(manager.isInitialized).toBe(true)

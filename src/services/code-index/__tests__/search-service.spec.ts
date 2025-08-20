@@ -25,7 +25,13 @@ const mockConfigManager = {
 } as CodeIndexConfigManager
 
 const mockStateManager = {
-	getCurrentStatus: vi.fn(() => ({ systemStatus: "Indexed" })),
+	getCurrentStatus: vi.fn(() => ({
+		systemStatus: "Indexed",
+		message: "",
+		processedItems: 0,
+		totalItems: 0,
+		currentItemUnit: "items",
+	})),
 	setSystemState: vi.fn(),
 } as unknown as CodeIndexStateManager
 
@@ -197,6 +203,10 @@ describe("CodeIndexSearchService", () => {
 		it("should throw error when system is not ready", async () => {
 			vi.mocked(mockStateManager.getCurrentStatus).mockReturnValue({
 				systemStatus: "Error" as any,
+				message: "",
+				processedItems: 0,
+				totalItems: 0,
+				currentItemUnit: "items",
 			})
 
 			await expect(searchService.searchIndex(mockQuery)).rejects.toThrow(
@@ -207,6 +217,10 @@ describe("CodeIndexSearchService", () => {
 		it("should allow search during indexing", async () => {
 			vi.mocked(mockStateManager.getCurrentStatus).mockReturnValue({
 				systemStatus: "Indexing" as any,
+				message: "",
+				processedItems: 0,
+				totalItems: 0,
+				currentItemUnit: "items",
 			})
 
 			const results = await searchService.searchIndex(mockQuery)

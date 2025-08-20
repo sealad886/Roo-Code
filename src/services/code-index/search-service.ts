@@ -62,10 +62,29 @@ export class CodeIndexSearchService {
 			// Apply re-ranking if configured and available
 			if (this.reranker && results.length > 0) {
 				try {
+					// Determine caps from config manager
+					const embedderMax = this.configManager.currentSearchMaxResults
+					const rerankerMax = this.configManager.rerankingMaxResults
+					let effectiveMax: number | undefined = undefined
+					if (rerankerMax !== undefined && rerankerMax !== null) {
+						effectiveMax =
+							embedderMax !== undefined && embedderMax !== null
+								? Math.min(rerankerMax, embedderMax)
+								: rerankerMax
+					}
+
+					// Slice results to the effective max to avoid sending too many items to the reranker
+					let resultsToRerank = results
+					if (effectiveMax !== undefined && effectiveMax !== null) {
+						resultsToRerank = results.slice(0, effectiveMax)
+					}
+
 					const rerankResponse = await this.reranker.rerank({
 						query,
-						results,
+						results: resultsToRerank,
 					})
+
+					// Replace results with reranked results. Note: downstream logic expects ordering preserved.
 					results = rerankResponse.results
 					console.log(`[CodeIndexSearchService] Applied re-ranking to ${results.length} results`)
 				} catch (rerankError) {

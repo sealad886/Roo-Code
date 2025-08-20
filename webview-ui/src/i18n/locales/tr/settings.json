@@ -43,6 +43,15 @@
 		"providerLabel": "Gömme Sağlayıcısı",
 		"selectProviderPlaceholder": "Sağlayıcı seç",
 		"openaiProvider": "OpenAI",
+		"rerankingLabel": "Reranking",
+		"rerankingEnabledLabel": "Enable Reranking",
+		"rerankingDescription": "Use a reranking model to improve search result relevance. Provide endpoint and credentials.",
+		"rerankingEndpointLabel": "Reranking Endpoint",
+		"rerankingEndpointPlaceholder": "Enter reranking endpoint URL",
+		"rerankingApiKeyLabel": "API Key:",
+		"rerankingApiKeyPlaceholder": "Enter your reranking API key",
+		"rerankingTimeoutLabel": "Reranking Timeout",
+		"rerankingTimeoutDescription": "Timeout in seconds for reranking requests. Set to 0 for no timeout",
 		"ollamaProvider": "Ollama",
 		"geminiProvider": "Gemini",
 		"geminiApiKeyLabel": "API Anahtarı:",
@@ -125,6 +134,10 @@
 		"searchMaxResultsDescription": "Kod tabanı dizinini sorgularken döndürülecek maksimum arama sonucu sayısı. Daha yüksek değerler daha fazla bağlam sağlar ancak daha az alakalı sonuçlar içerebilir.",
 		"resetToDefault": "Varsayılana sıfırla"
 	},
+	"rerankerModel": {
+		"label": "Reranker modeli",
+		"description": "Arama sonuçlarını yeniden sıralamak için kullanılan model (isteğe bağlı). Varsayılan reranker'ı kullanmak için boş bırakın."
+	},
 	"autoApprove": {
 		"description": "Roo'nun onay gerektirmeden otomatik olarak işlemler gerçekleştirmesine izin verin. Bu ayarları yalnızca yapay zekaya tamamen güveniyorsanız ve ilgili güvenlik risklerini anlıyorsanız etkinleştirin.",
 		"enabled": "Oto-onay etkinleştirildi",
@@ -199,10 +212,7 @@
 			"unlimited": "Sınırsız"
 		},
 		"selectOptionsFirst": "Otomatik onayı etkinleştirmek için aşağıdan en az bir seçenek seçin",
-		"apiCostLimit": {
-			"unlimited": "Sınırsız",
-			"title": "Maksimum Maliyet"
-		},
+		"apiCostLimit": { "unlimited": "Sınırsız", "title": "Maksimum Maliyet" },
 		"maxLimits": {
 			"description": "Bu sınırlara ulaşana kadar otomatik olarak istekleri yap, sonrasında devam etmek için onay iste."
 		}
@@ -402,10 +412,7 @@
 				"label": "Bilgisayar Kullanımı",
 				"description": "Bu model bir tarayıcıyla etkileşim kurabilir mi? (örn. Claude 3.7 Sonnet)"
 			},
-			"promptCache": {
-				"label": "İstem Önbelleği",
-				"description": "Bu model istemleri önbelleğe alabilir mi?"
-			},
+			"promptCache": { "label": "İstem Önbelleği", "description": "Bu model istemleri önbelleğe alabilir mi?" },
 			"pricing": {
 				"input": {
 					"label": "Giriş Fiyatı",
@@ -426,10 +433,7 @@
 			},
 			"resetDefaults": "Varsayılanlara Sıfırla"
 		},
-		"rateLimitSeconds": {
-			"label": "Hız sınırı",
-			"description": "API istekleri arasındaki minimum süre."
-		},
+		"rateLimitSeconds": { "label": "Hız sınırı", "description": "API istekleri arasındaki minimum süre." },
 		"consecutiveMistakeLimit": {
 			"label": "Hata ve Tekrar Limiti",
 			"description": "'Roo sorun yaşıyor' iletişim kutusunu göstermeden önceki ardışık hata veya tekrarlanan eylem sayısı",
@@ -587,10 +591,7 @@
 		}
 	},
 	"terminal": {
-		"basic": {
-			"label": "Terminal Ayarları: Temel",
-			"description": "Temel terminal ayarları"
-		},
+		"basic": { "label": "Terminal Ayarları: Temel", "description": "Temel terminal ayarları" },
 		"advanced": {
 			"label": "Terminal Ayarları: Gelişmiş",
 			"description": "Aşağıdaki seçeneklerin uygulanması için terminalin yeniden başlatılması gerekebilir."
@@ -644,9 +645,7 @@
 			"description": "Etkinleştirildiğinde, terminal VSCode üst işleminden ortam değişkenlerini devralır, örneğin kullanıcı profilinde tanımlanan kabuk entegrasyon ayarları gibi. Bu, VSCode'un global ayarı olan `terminal.integrated.inheritEnv` değerini doğrudan değiştirir. <0>Daha fazla bilgi</0>"
 		}
 	},
-	"advancedSettings": {
-		"title": "Gelişmiş ayarlar"
-	},
+	"advancedSettings": { "title": "Gelişmiş ayarlar" },
 	"advanced": {
 		"diff": {
 			"label": "Diff'ler aracılığıyla düzenlemeyi etkinleştir",
@@ -762,16 +761,9 @@
 			"label": "Anonim hata ve kullanım raporlamaya izin ver",
 			"description": "Anonim kullanım verileri ve hata raporları göndererek Roo Code'u geliştirmeye yardımcı olun. Hiçbir kod, istem veya kişisel bilgi asla gönderilmez. Daha fazla ayrıntı için gizlilik politikamıza bakın."
 		},
-		"settings": {
-			"import": "İçe Aktar",
-			"export": "Dışa Aktar",
-			"reset": "Sıfırla"
-		}
+		"settings": { "import": "İçe Aktar", "export": "Dışa Aktar", "reset": "Sıfırla" }
 	},
-	"thinkingBudget": {
-		"maxTokens": "Maksimum token",
-		"maxThinkingTokens": "Maksimum düşünme tokeni"
-	},
+	"thinkingBudget": { "maxTokens": "Maksimum token", "maxThinkingTokens": "Maksimum düşünme tokeni" },
 	"validation": {
 		"apiKey": "Geçerli bir API anahtarı sağlamalısınız.",
 		"awsRegion": "Amazon Bedrock kullanmak için bir bölge seçmelisiniz.",
@@ -817,10 +809,7 @@
 		"lmStudioUrl": "Varsayılan: http://localhost:1234",
 		"geminiUrl": "Varsayılan: https://generativelanguage.googleapis.com"
 	},
-	"labels": {
-		"customArn": "Özel ARN",
-		"useCustomArn": "Özel ARN kullan..."
-	},
+	"labels": { "customArn": "Özel ARN", "useCustomArn": "Özel ARN kullan..." },
 	"includeMaxOutputTokens": "Maksimum çıktı tokenlerini dahil et",
 	"includeMaxOutputTokensDescription": "API isteklerinde maksimum çıktı token parametresini gönder. Bazı sağlayıcılar bunu desteklemeyebilir.",
 	"limitMaxTokensDescription": "Yanıttaki maksimum token sayısını sınırla",

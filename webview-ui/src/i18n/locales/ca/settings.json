@@ -94,12 +94,7 @@
 		"saveSuccess": "Configuració desada correctament",
 		"saving": "Desant...",
 		"saveSettings": "Desar",
-		"indexingStatuses": {
-			"standby": "En espera",
-			"indexing": "Indexant",
-			"indexed": "Indexat",
-			"error": "Error"
-		},
+		"indexingStatuses": { "standby": "En espera", "indexing": "Indexant", "indexed": "Indexat", "error": "Error" },
 		"close": "Tancar",
 		"validation": {
 			"invalidQdrantUrl": "URL de Qdrant no vàlida",
@@ -124,6 +119,10 @@
 		"searchMaxResultsLabel": "Màxim de resultats de cerca",
 		"searchMaxResultsDescription": "Nombre màxim de resultats de cerca a retornar quan es consulta l'índex de la base de codi. Els valors més alts proporcionen més context però poden incloure resultats menys rellevants.",
 		"resetToDefault": "Restablir al valor per defecte"
+	},
+	"rerankerModel": {
+		"label": "Model de reranqueig",
+		"description": "Model utilitzat per reranquejar els resultats de la cerca (opcional). Deixeu-ho en blanc per utilitzar el reranker predeterminat."
 	},
 	"autoApprove": {
 		"description": "Permet que Roo realitzi operacions automàticament sense requerir aprovació. Activeu aquesta configuració només si confieu plenament en la IA i enteneu els riscos de seguretat associats.",
@@ -199,10 +198,7 @@
 			"unlimited": "Il·limitat"
 		},
 		"selectOptionsFirst": "Seleccioneu almenys una opció a continuació per activar l'aprovació automàtica",
-		"apiCostLimit": {
-			"title": "Cost Màxim",
-			"unlimited": "Il·limitat"
-		},
+		"apiCostLimit": { "title": "Cost Màxim", "unlimited": "Il·limitat" },
 		"maxLimits": {
 			"description": "Fes sol·licituds automàticament fins a aquests límits abans de demanar aprovació per continuar."
 		}
@@ -426,10 +422,7 @@
 			},
 			"resetDefaults": "Restablir als valors per defecte"
 		},
-		"rateLimitSeconds": {
-			"label": "Límit de freqüència",
-			"description": "Temps mínim entre sol·licituds d'API."
-		},
+		"rateLimitSeconds": { "label": "Límit de freqüència", "description": "Temps mínim entre sol·licituds d'API." },
 		"consecutiveMistakeLimit": {
 			"label": "Límit d'errors i repeticions",
 			"description": "Nombre d'errors consecutius o accions repetides abans de mostrar el diàleg 'En Roo està tenint problemes'",
@@ -586,10 +579,7 @@
 		}
 	},
 	"terminal": {
-		"basic": {
-			"label": "Configuració del terminal: Bàsica",
-			"description": "Configuració bàsica del terminal"
-		},
+		"basic": { "label": "Configuració del terminal: Bàsica", "description": "Configuració bàsica del terminal" },
 		"advanced": {
 			"label": "Configuració del terminal: Avançada",
 			"description": "Les següents opcions poden requerir reiniciar el terminal per aplicar la configuració."
@@ -643,9 +633,7 @@
 			"description": "Quan està habilitat, el terminal hereta les variables d'entorn del procés pare de VSCode, com ara la configuració d'integració del shell definida al perfil d'usuari. Això commuta directament la configuració global de VSCode `terminal.integrated.inheritEnv`. <0>Més informació</0>"
 		}
 	},
-	"advancedSettings": {
-		"title": "Configuració avançada"
-	},
+	"advancedSettings": { "title": "Configuració avançada" },
 	"advanced": {
 		"diff": {
 			"label": "Habilitar edició mitjançant diffs",
@@ -761,16 +749,9 @@
 			"label": "Permetre informes anònims d'errors i ús",
 			"description": "Ajudeu a millorar Roo Code enviant dades d'ús anònimes i informes d'errors. Mai s'envia codi, prompts o informació personal. Vegeu la nostra política de privacitat per a més detalls."
 		},
-		"settings": {
-			"import": "Importar",
-			"export": "Exportar",
-			"reset": "Restablir"
-		}
+		"settings": { "import": "Importar", "export": "Exportar", "reset": "Restablir" }
 	},
-	"thinkingBudget": {
-		"maxTokens": "Tokens màxims",
-		"maxThinkingTokens": "Tokens de pensament màxims"
-	},
+	"thinkingBudget": { "maxTokens": "Tokens màxims", "maxThinkingTokens": "Tokens de pensament màxims" },
 	"validation": {
 		"apiKey": "Heu de proporcionar una clau API vàlida.",
 		"awsRegion": "Heu de triar una regió per utilitzar Amazon Bedrock.",
@@ -816,10 +797,7 @@
 		"lmStudioUrl": "Per defecte: http://localhost:1234",
 		"geminiUrl": "Per defecte: https://generativelanguage.googleapis.com"
 	},
-	"labels": {
-		"customArn": "ARN personalitzat",
-		"useCustomArn": "Utilitza ARN personalitzat..."
-	},
+	"labels": { "customArn": "ARN personalitzat", "useCustomArn": "Utilitza ARN personalitzat..." },
 	"includeMaxOutputTokens": "Incloure tokens màxims de sortida",
 	"includeMaxOutputTokensDescription": "Enviar el paràmetre de tokens màxims de sortida a les sol·licituds API. Alguns proveïdors poden no admetre això.",
 	"limitMaxTokensDescription": "Limitar el nombre màxim de tokens en la resposta",

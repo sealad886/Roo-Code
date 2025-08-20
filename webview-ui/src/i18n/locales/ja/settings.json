@@ -43,6 +43,15 @@
 		"providerLabel": "埋め込みプロバイダー",
 		"selectProviderPlaceholder": "プロバイダーを選択",
 		"openaiProvider": "OpenAI",
+		"rerankingLabel": "Reranking",
+		"rerankingEnabledLabel": "Enable Reranking",
+		"rerankingDescription": "Use a reranking model to improve search result relevance. Provide endpoint and credentials.",
+		"rerankingEndpointLabel": "Reranking Endpoint",
+		"rerankingEndpointPlaceholder": "Enter reranking endpoint URL",
+		"rerankingApiKeyLabel": "API Key:",
+		"rerankingApiKeyPlaceholder": "Enter your reranking API key",
+		"rerankingTimeoutLabel": "Reranking Timeout",
+		"rerankingTimeoutDescription": "Timeout in seconds for reranking requests. Set to 0 for no timeout",
 		"ollamaProvider": "Ollama",
 		"geminiProvider": "Gemini",
 		"geminiApiKeyLabel": "APIキー：",
@@ -125,6 +134,10 @@
 		"searchMaxResultsDescription": "コードベースインデックスをクエリする際に返される検索結果の最大数。値を高くするとより多くのコンテキストが提供されますが、関連性の低い結果が含まれる可能性があります。",
 		"resetToDefault": "デフォルトにリセット"
 	},
+	"rerankerModel": {
+		"label": "再ランキングモデル",
+		"description": "検索結果を再ランキングするために使用するモデル（任意）。デフォルトの再ランキングモデルを使用する場合は空のままにしてください。"
+	},
 	"autoApprove": {
 		"description": "Rooが承認なしで自動的に操作を実行できるようにします。AIを完全に信頼し、関連するセキュリティリスクを理解している場合にのみ、これらの設定を有効にしてください。",
 		"enabled": "自動承認が有効",
@@ -164,14 +177,8 @@
 			"label": "MCP",
 			"description": "MCPサーバービューで個々のMCPツールの自動承認を有効にします（この設定とツールの「常に許可」チェックボックスの両方が必要）"
 		},
-		"modeSwitch": {
-			"label": "モード",
-			"description": "承認なしで自動的に異なるモード間を切り替え"
-		},
-		"subtasks": {
-			"label": "サブタスク",
-			"description": "承認なしでサブタスクの作成と完了を許可"
-		},
+		"modeSwitch": { "label": "モード", "description": "承認なしで自動的に異なるモード間を切り替え" },
+		"subtasks": { "label": "サブタスク", "description": "承認なしでサブタスクの作成と完了を許可" },
 		"followupQuestions": {
 			"label": "質問",
 			"description": "設定された時間が経過すると、フォローアップ質問の最初の提案回答を自動的に選択します",
@@ -189,23 +196,15 @@
 			"addButton": "追加",
 			"autoDenied": "プレフィックス `{{prefix}}` を持つコマンドはユーザーによって禁止されています。別のコマンドを実行してこの制限を回避しないでください。"
 		},
-		"updateTodoList": {
-			"label": "Todo",
-			"description": "承認なしで自動的にToDoリストを更新"
-		},
+		"updateTodoList": { "label": "Todo", "description": "承認なしで自動的にToDoリストを更新" },
 		"apiRequestLimit": {
 			"title": "最大リクエスト数",
 			"description": "タスクを続行するための承認を求める前に、自動的にこの数のAPIリクエストを行います。",
 			"unlimited": "無制限"
 		},
 		"selectOptionsFirst": "自動承認を有効にするには、以下のオプションを少なくとも1つ選択してください",
-		"apiCostLimit": {
-			"unlimited": "無制限",
-			"title": "最大料金"
-		},
-		"maxLimits": {
-			"description": "これらの上限まで自動的にリクエストを行い、その後継続の承認を求めます。"
-		}
+		"apiCostLimit": { "unlimited": "無制限", "title": "最大料金" },
+		"maxLimits": { "description": "これらの上限まで自動的にリクエストを行い、その後継続の承認を求めます。" }
 	},
 	"providers": {
 		"providerDocumentation": "{{provider}}のドキュメント",
@@ -394,10 +393,7 @@
 				"label": "コンテキストウィンドウサイズ",
 				"description": "モデルが処理できる総トークン数（入力＋出力）。"
 			},
-			"imageSupport": {
-				"label": "画像サポート",
-				"description": "このモデルは画像の処理と理解が可能ですか？"
-			},
+			"imageSupport": { "label": "画像サポート", "description": "このモデルは画像の処理と理解が可能ですか？" },
 			"computerUse": {
 				"label": "コンピューター使用",
 				"description": "このモデルはブラウザとの対話が可能ですか？（例：Claude 3.7 Sonnet）"
@@ -426,10 +422,7 @@
 			},
 			"resetDefaults": "デフォルトにリセット"
 		},
-		"rateLimitSeconds": {
-			"label": "レート制限",
-			"description": "APIリクエスト間の最小時間。"
-		},
+		"rateLimitSeconds": { "label": "レート制限", "description": "APIリクエスト間の最小時間。" },
 		"consecutiveMistakeLimit": {
 			"label": "エラーと繰り返しの制限",
 			"description": "「Rooが問題を抱えています」ダイアログを表示するまでの連続エラーまたは繰り返しアクションの数",
@@ -587,10 +580,7 @@
 		}
 	},
 	"terminal": {
-		"basic": {
-			"label": "ターミナル設定：基本",
-			"description": "基本的なターミナル設定"
-		},
+		"basic": { "label": "ターミナル設定：基本", "description": "基本的なターミナル設定" },
 		"advanced": {
 			"label": "ターミナル設定：詳細",
 			"description": "以下のオプションは設定を適用するためにターミナルの再起動が必要な場合があります"
@@ -644,9 +634,7 @@
 			"description": "有効にすると、ターミナルは VSCode の親プロセスから環境変数を継承します。ユーザープロファイルで定義されたシェル統合設定などが含まれます。これは VSCode のグローバル設定 `terminal.integrated.inheritEnv` を直接切り替えます。 <0>詳細情報</0>"
 		}
 	},
-	"advancedSettings": {
-		"title": "詳細設定"
-	},
+	"advancedSettings": { "title": "詳細設定" },
 	"advanced": {
 		"diff": {
 			"label": "diff経由の編集を有効化",
@@ -762,16 +750,9 @@
 			"label": "匿名のエラーと使用状況レポートを許可",
 			"description": "匿名の使用データとエラーレポートを送信してRoo Codeの改善にご協力ください。コード、プロンプト、個人情報が送信されることはありません。詳細については、プライバシーポリシーをご覧ください。"
 		},
-		"settings": {
-			"import": "インポート",
-			"export": "エクスポート",
-			"reset": "リセット"
-		}
+		"settings": { "import": "インポート", "export": "エクスポート", "reset": "リセット" }
 	},
-	"thinkingBudget": {
-		"maxTokens": "最大 tokens",
-		"maxThinkingTokens": "最大思考 tokens"
-	},
+	"thinkingBudget": { "maxTokens": "最大 tokens", "maxThinkingTokens": "最大思考 tokens" },
 	"validation": {
 		"apiKey": "有効なAPIキーを入力してください。",
 		"awsRegion": "Amazon Bedrockを使用するにはリージョンを選択してください。",
@@ -817,10 +798,7 @@
 		"lmStudioUrl": "デフォルト：http://localhost:1234",
 		"geminiUrl": "デフォルト：https://generativelanguage.googleapis.com"
 	},
-	"labels": {
-		"customArn": "カスタム ARN",
-		"useCustomArn": "カスタム ARN を使用..."
-	},
+	"labels": { "customArn": "カスタム ARN", "useCustomArn": "カスタム ARN を使用..." },
 	"includeMaxOutputTokens": "最大出力トークンを含める",
 	"includeMaxOutputTokensDescription": "APIリクエストで最大出力トークンパラメータを送信します。一部のプロバイダーはこれをサポートしていない場合があります。",
 	"limitMaxTokensDescription": "レスポンスの最大トークン数を制限する",

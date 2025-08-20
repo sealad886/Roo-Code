@@ -18,6 +18,8 @@ export interface CodeIndexConfig {
 	qdrantApiKey?: string
 	searchMinScore?: number
 	searchMaxResults?: number
+	// Optional cap for how many top vector results should be passed to an external reranker
+	rerankingMaxResults?: number
 }
 
 /**

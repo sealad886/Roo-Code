@@ -27,6 +27,8 @@ export class CodeIndexConfigManager {
 	private _rerankingEndpoint?: string
 	private _rerankingApiKey?: string
 	private _rerankingTimeoutMs?: number
+	// Maximum number of top vector results to send to the reranker (user-configurable)
+	private _rerankingMaxResults?: number
 
 	constructor(private readonly contextProxy: ContextProxy) {
 		// Initialize with current configuration to avoid false restart triggers
@@ -67,6 +69,7 @@ export class CodeIndexConfigManager {
 			codebaseIndexEmbedderModelId,
 			codebaseIndexSearchMinScore,
 			codebaseIndexSearchMaxResults,
+			codebaseIndexRerankerMaxResults,
 			codebaseIndexRerankingEnabled,
 			codebaseIndexRerankingEndpoint,
 			codebaseIndexRerankingTimeoutMs,
@@ -87,6 +90,21 @@ export class CodeIndexConfigManager {
 		this.qdrantApiKey = qdrantApiKey ?? ""
 		this.searchMinScore = codebaseIndexSearchMinScore
 		this.searchMaxResults = codebaseIndexSearchMaxResults
+
+		// Validate and set reranker max results if provided (must be >= 1)
+		if (codebaseIndexRerankerMaxResults !== undefined && codebaseIndexRerankerMaxResults !== null) {
+			const rr = Number(codebaseIndexRerankerMaxResults)
+			if (!isNaN(rr) && rr >= 1) {
+				this._rerankingMaxResults = rr
+			} else {
+				console.warn(
+					`Invalid codebaseIndexRerankerMaxResults value: ${codebaseIndexRerankerMaxResults}. Must be a number >= 1.`,
+				)
+				this._rerankingMaxResults = undefined
+			}
+		} else {
+			this._rerankingMaxResults = undefined
+		}
 
 		// Set re-ranking configuration
 		this._rerankingEnabled = codebaseIndexRerankingEnabled ?? false
@@ -161,6 +179,8 @@ export class CodeIndexConfigManager {
 			qdrantUrl?: string
 			qdrantApiKey?: string
 			searchMinScore?: number
+			searchMaxResults?: number
+			rerankingMaxResults?: number
 		}
 		requiresRestart: boolean
 	}> {
@@ -204,6 +224,9 @@ export class CodeIndexConfigManager {
 				qdrantUrl: this.qdrantUrl,
 				qdrantApiKey: this.qdrantApiKey,
 				searchMinScore: this.currentSearchMinScore,
+				searchMaxResults: this.currentSearchMaxResults,
+				// expose reranking max so callers can reflect UI/state
+				rerankingMaxResults: this._rerankingMaxResults,
 			},
 			requiresRestart,
 		}
@@ -476,6 +499,14 @@ export class CodeIndexConfigManager {
 	 */
 	public get currentSearchMaxResults(): number {
 		return this.searchMaxResults ?? DEFAULT_MAX_SEARCH_RESULTS
+	}
+
+	/**
+	 * Gets the configured maximum number of top vector results to pass to the reranker.
+	 * This value is optional and, if undefined, no reranker-specific cap is applied.
+	 */
+	public get rerankingMaxResults(): number | undefined {
+		return this._rerankingMaxResults
 	}
 
 	/**

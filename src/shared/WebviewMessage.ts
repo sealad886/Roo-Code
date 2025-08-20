@@ -264,6 +264,7 @@ export interface WebviewMessage {
 		codebaseIndexEmbedderModelDimension?: number // Generic dimension for all providers
 		codebaseIndexOpenAiCompatibleBaseUrl?: string
 		codebaseIndexSearchMaxResults?: number
+		codebaseIndexRerankerMaxResults?: number
 		codebaseIndexSearchMinScore?: number
 
 		// Secret settings

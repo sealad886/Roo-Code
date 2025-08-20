@@ -42,6 +42,15 @@
 		"statusTitle": "Statut",
 		"enableLabel": "Activer l'indexation de la base de code",
 		"enableDescription": "Activer l'indexation du code pour une recherche et une compréhension du contexte améliorées",
+		"rerankingLabel": "Reranking",
+		"rerankingEnabledLabel": "Enable Reranking",
+		"rerankingDescription": "Use a reranking model to improve search result relevance. Provide endpoint and credentials.",
+		"rerankingEndpointLabel": "Reranking Endpoint",
+		"rerankingEndpointPlaceholder": "Enter reranking endpoint URL",
+		"rerankingApiKeyLabel": "API Key:",
+		"rerankingApiKeyPlaceholder": "Enter your reranking API key",
+		"rerankingTimeoutLabel": "Reranking Timeout",
+		"rerankingTimeoutDescription": "Timeout in seconds for reranking requests. Set to 0 for no timeout",
 		"settingsTitle": "Paramètres d'indexation",
 		"disabledMessage": "L'indexation de la base de code est actuellement désactivée. Activez-la dans les paramètres globaux pour configurer les options d'indexation.",
 		"providerLabel": "Fournisseur d'embeddings",
@@ -125,6 +134,10 @@
 		"searchMaxResultsDescription": "Nombre maximum de résultats de recherche à retourner lors de l'interrogation de l'index de code. Des valeurs plus élevées fournissent plus de contexte mais peuvent inclure des résultats moins pertinents.",
 		"resetToDefault": "Réinitialiser par défaut"
 	},
+	"rerankerModel": {
+		"label": "Modèle de reranking",
+		"description": "Modèle utilisé pour réordonner les résultats de recherche (optionnel). Laissez vide pour utiliser le reranker par défaut."
+	},
 	"autoApprove": {
 		"description": "Permettre à Roo d'effectuer automatiquement des opérations sans requérir d'approbation. Activez ces paramètres uniquement si vous faites entièrement confiance à l'IA et que vous comprenez les risques de sécurité associés.",
 		"enabled": "Auto-approbation activée",
@@ -199,10 +212,7 @@
 			"description": "Effectuer automatiquement ce nombre de requêtes API avant de demander l'approbation pour continuer la tâche.",
 			"unlimited": "Illimité"
 		},
-		"apiCostLimit": {
-			"unlimited": "Illimité",
-			"title": "Coût maximum"
-		},
+		"apiCostLimit": { "unlimited": "Illimité", "title": "Coût maximum" },
 		"maxLimits": {
 			"description": "Effectuer automatiquement des requêtes jusqu'à ces limites avant de demander une autorisation pour continuer."
 		}
@@ -426,10 +436,7 @@
 			},
 			"resetDefaults": "Réinitialiser les valeurs par défaut"
 		},
-		"rateLimitSeconds": {
-			"label": "Limite de débit",
-			"description": "Temps minimum entre les requêtes API."
-		},
+		"rateLimitSeconds": { "label": "Limite de débit", "description": "Temps minimum entre les requêtes API." },
 		"consecutiveMistakeLimit": {
 			"label": "Limite d'erreurs et de répétitions",
 			"description": "Nombre d'erreurs consécutives ou d'actions répétées avant d'afficher la boîte de dialogue 'Roo a des difficultés'",
@@ -586,10 +593,7 @@
 		}
 	},
 	"terminal": {
-		"basic": {
-			"label": "Paramètres du terminal : Base",
-			"description": "Paramètres de base du terminal"
-		},
+		"basic": { "label": "Paramètres du terminal : Base", "description": "Paramètres de base du terminal" },
 		"advanced": {
 			"label": "Paramètres du terminal : Avancé",
 			"description": "Les options suivantes peuvent nécessiter un redémarrage du terminal pour appliquer le paramètre."
@@ -643,9 +647,7 @@
 			"description": "Lorsqu'activé, le terminal hérite des variables d'environnement du processus parent VSCode, comme les paramètres d'intégration du shell définis dans le profil utilisateur. Cela bascule directement le paramètre global VSCode `terminal.integrated.inheritEnv`. <0>En savoir plus</0>"
 		}
 	},
-	"advancedSettings": {
-		"title": "Paramètres avancés"
-	},
+	"advancedSettings": { "title": "Paramètres avancés" },
 	"advanced": {
 		"diff": {
 			"label": "Activer l'édition via des diffs",
@@ -761,16 +763,9 @@
 			"label": "Autoriser les rapports anonymes d'erreurs et d'utilisation",
 			"description": "Aidez à améliorer Roo Code en envoyant des données d'utilisation anonymes et des rapports d'erreurs. Aucun code, prompt ou information personnelle n'est jamais envoyé. Consultez notre politique de confidentialité pour plus de détails."
 		},
-		"settings": {
-			"import": "Importer",
-			"export": "Exporter",
-			"reset": "Réinitialiser"
-		}
+		"settings": { "import": "Importer", "export": "Exporter", "reset": "Réinitialiser" }
 	},
-	"thinkingBudget": {
-		"maxTokens": "Tokens maximum",
-		"maxThinkingTokens": "Tokens de réflexion maximum"
-	},
+	"thinkingBudget": { "maxTokens": "Tokens maximum", "maxThinkingTokens": "Tokens de réflexion maximum" },
 	"validation": {
 		"apiKey": "Vous devez fournir une clé API valide.",
 		"awsRegion": "Vous devez choisir une région pour utiliser Amazon Bedrock.",
@@ -816,10 +811,7 @@
 		"lmStudioUrl": "Par défaut : http://localhost:1234",
 		"geminiUrl": "Par défaut : https://generativelanguage.googleapis.com"
 	},
-	"labels": {
-		"customArn": "ARN personnalisé",
-		"useCustomArn": "Utiliser un ARN personnalisé..."
-	},
+	"labels": { "customArn": "ARN personnalisé", "useCustomArn": "Utiliser un ARN personnalisé..." },
 	"includeMaxOutputTokens": "Inclure les tokens de sortie maximum",
 	"includeMaxOutputTokensDescription": "Envoyer le paramètre de tokens de sortie maximum dans les requêtes API. Certains fournisseurs peuvent ne pas supporter cela.",
 	"limitMaxTokensDescription": "Limiter le nombre maximum de tokens dans la réponse",

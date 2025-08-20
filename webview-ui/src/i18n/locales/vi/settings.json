@@ -125,6 +125,10 @@
 		"searchMaxResultsDescription": "Số lượng kết quả tìm kiếm tối đa được trả về khi truy vấn chỉ mục cơ sở mã. Giá trị cao hơn cung cấp nhiều ngữ cảnh hơn nhưng có thể bao gồm các kết quả ít liên quan hơn.",
 		"resetToDefault": "Đặt lại về mặc định"
 	},
+	"rerankerModel": {
+		"label": "Mô hình reranker",
+		"description": "Mô hình dùng để sắp xếp lại kết quả tìm kiếm (tùy chọn). Để trống để sử dụng reranker mặc định."
+	},
 	"autoApprove": {
 		"description": "Cho phép Roo tự động thực hiện các hoạt động mà không cần phê duyệt. Chỉ bật những cài đặt này nếu bạn hoàn toàn tin tưởng AI và hiểu rõ các rủi ro bảo mật liên quan.",
 		"enabled": "Phê duyệt tự động đã bật",
@@ -199,10 +203,7 @@
 			"unlimited": "Không giới hạn"
 		},
 		"selectOptionsFirst": "Chọn ít nhất một tùy chọn bên dưới để bật tự động phê duyệt",
-		"apiCostLimit": {
-			"title": "Chi phí tối đa",
-			"unlimited": "Không giới hạn"
-		},
+		"apiCostLimit": { "title": "Chi phí tối đa", "unlimited": "Không giới hạn" },
 		"maxLimits": {
 			"description": "Tự động thực hiện các yêu cầu lên đến các giới hạn này trước khi xin phê duyệt để tiếp tục."
 		}
@@ -426,10 +427,7 @@
 			},
 			"resetDefaults": "Đặt lại về mặc định"
 		},
-		"rateLimitSeconds": {
-			"label": "Giới hạn tốc độ",
-			"description": "Thời gian tối thiểu giữa các yêu cầu API."
-		},
+		"rateLimitSeconds": { "label": "Giới hạn tốc độ", "description": "Thời gian tối thiểu giữa các yêu cầu API." },
 		"consecutiveMistakeLimit": {
 			"label": "Giới hạn lỗi và lặp lại",
 			"description": "Số lỗi liên tiếp hoặc hành động lặp lại trước khi hiển thị hộp thoại 'Roo đang gặp sự cố'",
@@ -587,10 +585,7 @@
 		}
 	},
 	"terminal": {
-		"basic": {
-			"label": "Cài đặt Terminal: Cơ bản",
-			"description": "Cài đặt cơ bản cho terminal"
-		},
+		"basic": { "label": "Cài đặt Terminal: Cơ bản", "description": "Cài đặt cơ bản cho terminal" },
 		"advanced": {
 			"label": "Cài đặt Terminal: Nâng cao",
 			"description": "Các tùy chọn sau có thể yêu cầu khởi động lại terminal để áp dụng cài đặt."
@@ -644,9 +639,7 @@
 			"description": "Khi được bật, terminal sẽ kế thừa các biến môi trường từ tiến trình cha của VSCode, như các cài đặt tích hợp shell được định nghĩa trong hồ sơ người dùng. Điều này trực tiếp chuyển đổi cài đặt toàn cục của VSCode `terminal.integrated.inheritEnv`. <0>Tìm hiểu thêm</0>"
 		}
 	},
-	"advancedSettings": {
-		"title": "Cài đặt nâng cao"
-	},
+	"advancedSettings": { "title": "Cài đặt nâng cao" },
 	"advanced": {
 		"diff": {
 			"label": "Bật chỉnh sửa qua diff",
@@ -762,16 +755,9 @@
 			"label": "Cho phép báo cáo lỗi và sử dụng ẩn danh",
 			"description": "Giúp cải thiện Roo Code bằng cách gửi dữ liệu sử dụng ẩn danh và báo cáo lỗi. Không bao giờ gửi mã, lời nhắc hoặc thông tin cá nhân. Xem chính sách bảo mật của chúng tôi để biết thêm chi tiết."
 		},
-		"settings": {
-			"import": "Nhập",
-			"export": "Xuất",
-			"reset": "Đặt lại"
-		}
+		"settings": { "import": "Nhập", "export": "Xuất", "reset": "Đặt lại" }
 	},
-	"thinkingBudget": {
-		"maxTokens": "Tokens tối đa",
-		"maxThinkingTokens": "Tokens suy nghĩ tối đa"
-	},
+	"thinkingBudget": { "maxTokens": "Tokens tối đa", "maxThinkingTokens": "Tokens suy nghĩ tối đa" },
 	"validation": {
 		"apiKey": "Bạn phải cung cấp khóa API hợp lệ.",
 		"awsRegion": "Bạn phải chọn một vùng để sử dụng Amazon Bedrock.",
@@ -817,10 +803,7 @@
 		"lmStudioUrl": "Mặc định: http://localhost:1234",
 		"geminiUrl": "Mặc định: https://generativelanguage.googleapis.com"
 	},
-	"labels": {
-		"customArn": "ARN tùy chỉnh",
-		"useCustomArn": "Sử dụng ARN tùy chỉnh..."
-	},
+	"labels": { "customArn": "ARN tùy chỉnh", "useCustomArn": "Sử dụng ARN tùy chỉnh..." },
 	"includeMaxOutputTokens": "Bao gồm token đầu ra tối đa",
 	"includeMaxOutputTokensDescription": "Gửi tham số token đầu ra tối đa trong các yêu cầu API. Một số nhà cung cấp có thể không hỗ trợ điều này.",
 	"limitMaxTokensDescription": "Giới hạn số lượng token tối đa trong phản hồi",

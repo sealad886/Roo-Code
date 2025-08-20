@@ -164,6 +164,94 @@ describe("CodeIndexSearchService", () => {
 			expect(results).toEqual([])
 		})
 
+		it("should cap results sent to reranker by both embedder and reranker settings (embedder smaller)", async () => {
+			// Create 20 results
+			const manyResults: VectorStoreSearchResult[] = Array.from({ length: 20 }).map((_, i) => ({
+				id: `${i + 1}`,
+				score: 1 - i * 0.01,
+				payload: { filePath: `/file${i + 1}.ts`, codeChunk: `c${i + 1}`, startLine: 1, endLine: 1 },
+			}))
+
+			vi.mocked(mockVectorStore.search).mockResolvedValue(manyResults)
+			vi.mocked(mockEmbedder.createEmbeddings).mockResolvedValue({ embeddings: [mockVector] })
+
+			const cfg = {
+				...mockConfigManager,
+				currentSearchMaxResults: 10, // embedder cap
+				rerankingMaxResults: 5, // reranker cap
+			} as unknown as CodeIndexConfigManager
+
+			const svc = new CodeIndexSearchService(cfg, mockStateManager, mockEmbedder, mockVectorStore, mockReranker)
+
+			vi.mocked(mockReranker.rerank).mockResolvedValue({ results: manyResults.slice(0, 5) })
+
+			await svc.searchIndex(mockQuery)
+
+			// Expect reranker called with 5 results (min(embedder 10, reranker 5) => 5)
+			expect(mockReranker.rerank).toHaveBeenCalledWith({
+				query: mockQuery,
+				results: manyResults.slice(0, 5),
+			})
+		})
+
+		it("should cap results sent to reranker by embedder when reranker requests more", async () => {
+			const manyResults: VectorStoreSearchResult[] = Array.from({ length: 20 }).map((_, i) => ({
+				id: `${i + 1}`,
+				score: 1 - i * 0.01,
+				payload: { filePath: `/file${i + 1}.ts`, codeChunk: `c${i + 1}`, startLine: 1, endLine: 1 },
+			}))
+
+			vi.mocked(mockVectorStore.search).mockResolvedValue(manyResults)
+			vi.mocked(mockEmbedder.createEmbeddings).mockResolvedValue({ embeddings: [mockVector] })
+
+			const cfg = {
+				...mockConfigManager,
+				currentSearchMaxResults: 8, // embedder cap
+				rerankingMaxResults: 20, // reranker requests more than embedder
+			} as unknown as CodeIndexConfigManager
+
+			const svc = new CodeIndexSearchService(cfg, mockStateManager, mockEmbedder, mockVectorStore, mockReranker)
+
+			vi.mocked(mockReranker.rerank).mockResolvedValue({ results: manyResults.slice(0, 8) })
+
+			await svc.searchIndex(mockQuery)
+
+			// Expect reranker called with 8 results (capped to embedder)
+			expect(mockReranker.rerank).toHaveBeenCalledWith({
+				query: mockQuery,
+				results: manyResults.slice(0, 8),
+			})
+		})
+
+		it("should limit results to reranker setting when embedder has no cap", async () => {
+			const manyResults: VectorStoreSearchResult[] = Array.from({ length: 20 }).map((_, i) => ({
+				id: `${i + 1}`,
+				score: 1 - i * 0.01,
+				payload: { filePath: `/file${i + 1}.ts`, codeChunk: `c${i + 1}`, startLine: 1, endLine: 1 },
+			}))
+
+			vi.mocked(mockVectorStore.search).mockResolvedValue(manyResults)
+			vi.mocked(mockEmbedder.createEmbeddings).mockResolvedValue({ embeddings: [mockVector] })
+
+			const cfg = {
+				...mockConfigManager,
+				// no embedder cap provided (undefined), only reranker cap
+				currentSearchMaxResults: undefined as unknown as number,
+				rerankingMaxResults: 3,
+			} as unknown as CodeIndexConfigManager
+
+			const svc = new CodeIndexSearchService(cfg, mockStateManager, mockEmbedder, mockVectorStore, mockReranker)
+
+			vi.mocked(mockReranker.rerank).mockResolvedValue({ results: manyResults.slice(0, 3) })
+
+			await svc.searchIndex(mockQuery)
+
+			expect(mockReranker.rerank).toHaveBeenCalledWith({
+				query: mockQuery,
+				results: manyResults.slice(0, 3),
+			})
+		})
+
 		it("should throw error when feature is disabled", async () => {
 			const disabledConfigManager = {
 				...mockConfigManager,

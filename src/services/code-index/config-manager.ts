@@ -2,7 +2,7 @@ import { ApiHandlerOptions } from "../../shared/api"
 import { ContextProxy } from "../../core/config/ContextProxy"
 import { EmbedderProvider } from "./interfaces/manager"
 import { CodeIndexConfig, PreviousConfigSnapshot } from "./interfaces/config"
-import { DEFAULT_SEARCH_MIN_SCORE, DEFAULT_MAX_SEARCH_RESULTS } from "./constants"
+import { DEFAULT_SEARCH_MIN_SCORE, DEFAULT_MAX_SEARCH_RESULTS, DEFAULT_RERANKING_TIMEOUT_MS } from "./constants"
 import { getDefaultModelId, getModelDimension, getModelScoreThreshold } from "../../shared/embeddingModels"
 
 /**
@@ -23,6 +23,10 @@ export class CodeIndexConfigManager {
 	private qdrantApiKey?: string
 	private searchMinScore?: number
 	private searchMaxResults?: number
+	private _rerankingEnabled: boolean = false
+	private _rerankingEndpoint?: string
+	private _rerankingApiKey?: string
+	private _rerankingTimeoutMs?: number
 
 	constructor(private readonly contextProxy: ContextProxy) {
 		// Initialize with current configuration to avoid false restart triggers
@@ -50,6 +54,9 @@ export class CodeIndexConfigManager {
 			codebaseIndexEmbedderModelId: "",
 			codebaseIndexSearchMinScore: undefined,
 			codebaseIndexSearchMaxResults: undefined,
+			codebaseIndexRerankingEnabled: false,
+			codebaseIndexRerankingEndpoint: undefined,
+			codebaseIndexRerankingTimeoutMs: undefined,
 		}
 
 		const {
@@ -60,6 +67,9 @@ export class CodeIndexConfigManager {
 			codebaseIndexEmbedderModelId,
 			codebaseIndexSearchMinScore,
 			codebaseIndexSearchMaxResults,
+			codebaseIndexRerankingEnabled,
+			codebaseIndexRerankingEndpoint,
+			codebaseIndexRerankingTimeoutMs,
 		} = codebaseIndexConfig
 
 		const openAiKey = this.contextProxy?.getSecret("codeIndexOpenAiKey") ?? ""
@@ -69,6 +79,7 @@ export class CodeIndexConfigManager {
 		const openAiCompatibleApiKey = this.contextProxy?.getSecret("codebaseIndexOpenAiCompatibleApiKey") ?? ""
 		const geminiApiKey = this.contextProxy?.getSecret("codebaseIndexGeminiApiKey") ?? ""
 		const mistralApiKey = this.contextProxy?.getSecret("codebaseIndexMistralApiKey") ?? ""
+		const rerankingApiKey = this.contextProxy?.getSecret("codebaseIndexRerankingApiKey") ?? ""
 
 		// Update instance variables with configuration
 		this.codebaseIndexEnabled = codebaseIndexEnabled ?? true
@@ -76,6 +87,12 @@ export class CodeIndexConfigManager {
 		this.qdrantApiKey = qdrantApiKey ?? ""
 		this.searchMinScore = codebaseIndexSearchMinScore
 		this.searchMaxResults = codebaseIndexSearchMaxResults
+
+		// Set re-ranking configuration
+		this._rerankingEnabled = codebaseIndexRerankingEnabled ?? false
+		this._rerankingEndpoint = codebaseIndexRerankingEndpoint
+		this._rerankingApiKey = rerankingApiKey
+		this._rerankingTimeoutMs = codebaseIndexRerankingTimeoutMs
 
 		// Validate and set model dimension
 		const rawDimension = codebaseIndexConfig.codebaseIndexEmbedderModelDimension
@@ -459,5 +476,40 @@ export class CodeIndexConfigManager {
 	 */
 	public get currentSearchMaxResults(): number {
 		return this.searchMaxResults ?? DEFAULT_MAX_SEARCH_RESULTS
+	}
+
+	/**
+	 * Gets whether re-ranking is enabled
+	 */
+	public get isRerankingEnabled(): boolean {
+		return this._rerankingEnabled
+	}
+
+	/**
+	 * Gets the re-ranking endpoint URL
+	 */
+	public get rerankingEndpoint(): string | undefined {
+		return this._rerankingEndpoint
+	}
+
+	/**
+	 * Gets the re-ranking API key
+	 */
+	public get rerankingApiKey(): string | undefined {
+		return this._rerankingApiKey
+	}
+
+	/**
+	 * Gets the re-ranking timeout in milliseconds
+	 */
+	public get currentRerankingTimeoutMs(): number {
+		return this._rerankingTimeoutMs ?? DEFAULT_RERANKING_TIMEOUT_MS
+	}
+
+	/**
+	 * Checks if re-ranking is properly configured
+	 */
+	public get isRerankingConfigured(): boolean {
+		return !!(this._rerankingEnabled && this._rerankingEndpoint)
 	}
 }

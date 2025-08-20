@@ -12,6 +12,10 @@ export const CODEBASE_INDEX_DEFAULTS = {
 	MAX_SEARCH_SCORE: 1,
 	DEFAULT_SEARCH_MIN_SCORE: 0.4,
 	SEARCH_SCORE_STEP: 0.05,
+	// Re-ranking defaults
+	DEFAULT_RERANKING_TIMEOUT_MS: 5000,
+	MIN_RERANKING_TIMEOUT_MS: 1000,
+	MAX_RERANKING_TIMEOUT_MS: 30000,
 } as const
 
 /**
@@ -34,6 +38,10 @@ export const codebaseIndexConfigSchema = z.object({
 	// OpenAI Compatible specific fields
 	codebaseIndexOpenAiCompatibleBaseUrl: z.string().optional(),
 	codebaseIndexOpenAiCompatibleModelDimension: z.number().optional(),
+	// Re-ranking configuration
+	codebaseIndexRerankingEnabled: z.boolean().optional(),
+	codebaseIndexRerankingEndpoint: z.string().url().optional(),
+	codebaseIndexRerankingTimeoutMs: z.number().min(1000).max(30000).optional(),
 })
 
 export type CodebaseIndexConfig = z.infer<typeof codebaseIndexConfigSchema>
@@ -64,6 +72,8 @@ export const codebaseIndexProviderSchema = z.object({
 	codebaseIndexOpenAiCompatibleModelDimension: z.number().optional(),
 	codebaseIndexGeminiApiKey: z.string().optional(),
 	codebaseIndexMistralApiKey: z.string().optional(),
+	// Re-ranking API key (optional for endpoints that require authentication)
+	codebaseIndexRerankingApiKey: z.string().optional(),
 })
 
 export type CodebaseIndexProvider = z.infer<typeof codebaseIndexProviderSchema>

@@ -2,6 +2,7 @@ import * as path from "path"
 import { VectorStoreSearchResult } from "./interfaces"
 import { IEmbedder } from "./interfaces/embedder"
 import { IVectorStore } from "./interfaces/vector-store"
+import { IReranker } from "./interfaces/reranker"
 import { CodeIndexConfigManager } from "./config-manager"
 import { CodeIndexStateManager } from "./state-manager"
 import { TelemetryService } from "@roo-code/telemetry"
@@ -16,6 +17,7 @@ export class CodeIndexSearchService {
 		private readonly stateManager: CodeIndexStateManager,
 		private readonly embedder: IEmbedder,
 		private readonly vectorStore: IVectorStore,
+		private readonly reranker?: IReranker,
 	) {}
 
 	/**
@@ -54,8 +56,31 @@ export class CodeIndexSearchService {
 				normalizedPrefix = path.normalize(directoryPrefix)
 			}
 
-			// Perform search
-			const results = await this.vectorStore.search(vector, normalizedPrefix, minScore, maxResults)
+			// Perform initial vector search
+			let results = await this.vectorStore.search(vector, normalizedPrefix, minScore, maxResults)
+
+			// Apply re-ranking if configured and available
+			if (this.reranker && results.length > 0) {
+				try {
+					const rerankResponse = await this.reranker.rerank({
+						query,
+						results,
+					})
+					results = rerankResponse.results
+					console.log(`[CodeIndexSearchService] Applied re-ranking to ${results.length} results`)
+				} catch (rerankError) {
+					// Log re-ranking error but continue with original results
+					console.warn("[CodeIndexSearchService] Re-ranking failed, using original results:", rerankError)
+
+					// Capture telemetry for the re-ranking error
+					TelemetryService.instance.captureEvent(TelemetryEventName.CODE_INDEX_ERROR, {
+						error: (rerankError as Error).message,
+						stack: (rerankError as Error).stack,
+						location: "searchIndex_reranking",
+					})
+				}
+			}
+
 			return results
 		} catch (error) {
 			console.error("[CodeIndexSearchService] Error during search:", error)

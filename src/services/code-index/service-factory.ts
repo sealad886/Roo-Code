@@ -7,7 +7,8 @@ import { MistralEmbedder } from "./embedders/mistral"
 import { EmbedderProvider, getDefaultModelId, getModelDimension } from "../../shared/embeddingModels"
 import { QdrantVectorStore } from "./vector-store/qdrant-client"
 import { codeParser, DirectoryScanner, FileWatcher } from "./processors"
-import { ICodeParser, IEmbedder, IFileWatcher, IVectorStore } from "./interfaces"
+import { ICodeParser, IEmbedder, IFileWatcher, IVectorStore, IReranker } from "./interfaces"
+import { HttpReranker } from "./rerankers"
 import { CodeIndexConfigManager } from "./config-manager"
 import { CacheManager } from "./cache-manager"
 import { RooIgnoreController } from "../../core/ignore/RooIgnoreController"
@@ -142,6 +143,30 @@ export class CodeIndexServiceFactory {
 	}
 
 	/**
+	 * Creates a reranker instance if re-ranking is enabled and configured.
+	 * @returns IReranker instance or undefined if re-ranking is not configured
+	 */
+	public createReranker(): IReranker | undefined {
+		if (!this.configManager.isRerankingEnabled || !this.configManager.isRerankingConfigured) {
+			return undefined
+		}
+
+		const endpoint = this.configManager.rerankingEndpoint
+		const apiKey = this.configManager.rerankingApiKey
+		const timeoutMs = this.configManager.currentRerankingTimeoutMs
+
+		if (!endpoint) {
+			return undefined
+		}
+
+		return new HttpReranker({
+			endpoint,
+			apiKey,
+			timeoutMs,
+		})
+	}
+
+	/**
 	 * Creates a directory scanner instance with its required dependencies.
 	 */
 	public createDirectoryScanner(
@@ -190,6 +215,7 @@ export class CodeIndexServiceFactory {
 		parser: ICodeParser
 		scanner: DirectoryScanner
 		fileWatcher: IFileWatcher
+		reranker?: IReranker
 	} {
 		if (!this.configManager.isFeatureConfigured) {
 			throw new Error(t("embeddings:serviceFactory.codeIndexingNotConfigured"))
@@ -197,6 +223,7 @@ export class CodeIndexServiceFactory {
 
 		const embedder = this.createEmbedder()
 		const vectorStore = this.createVectorStore()
+		const reranker = this.createReranker()
 		const parser = codeParser
 		const scanner = this.createDirectoryScanner(embedder, vectorStore, parser, ignoreInstance)
 		const fileWatcher = this.createFileWatcher(
@@ -214,6 +241,7 @@ export class CodeIndexServiceFactory {
 			parser,
 			scanner,
 			fileWatcher,
+			reranker,
 		}
 	}
 }

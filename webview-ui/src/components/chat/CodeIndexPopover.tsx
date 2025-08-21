@@ -15,6 +15,7 @@ import { useExtensionState } from "@src/context/ExtensionStateContext"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { buildDocLink } from "@src/utils/docLinks"
 import { cn } from "@src/lib/utils"
+import { FormattedTextField, unlimitedIntegerFormatter } from "@src/components/common/FormattedTextField"
 import {
 	Select,
 	SelectContent,
@@ -63,6 +64,15 @@ interface LocalCodeIndexSettings {
 	codebaseIndexSearchMaxResults?: number
 	codebaseIndexSearchMinScore?: number
 
+	// Re-ranking settings
+	codebaseIndexRerankingEnabled?: boolean
+	codebaseIndexRerankingEndpoint?: string
+	// Model identifier/string used by the reranker (optional). Reads/writes into the same settings object as other index settings.
+	codebaseIndexRerankingModel?: string
+	codebaseIndexRerankingTimeoutMs?: number
+	// Allow configuring how many top vector results are passed to the reranker
+	codebaseIndexRerankerMaxResults?: number
+
 	// Secret settings (start empty, will be loaded separately)
 	codeIndexOpenAiKey?: string
 	codeIndexQdrantApiKey?: string
@@ -70,6 +80,7 @@ interface LocalCodeIndexSettings {
 	codebaseIndexOpenAiCompatibleApiKey?: string
 	codebaseIndexGeminiApiKey?: string
 	codebaseIndexMistralApiKey?: string
+	codebaseIndexRerankingApiKey?: string
 }
 
 // Validation schema for codebase index settings
@@ -81,19 +92,26 @@ const createValidationSchema = (provider: EmbedderProvider, t: any) => {
 			.min(1, t("settings:codeIndex.validation.qdrantUrlRequired"))
 			.url(t("settings:codeIndex.validation.invalidQdrantUrl")),
 		codeIndexQdrantApiKey: z.string().optional(),
+		// Re-ranking validation
+		codebaseIndexRerankingEnabled: z.boolean().optional(),
+		codebaseIndexRerankingEndpoint: z.string().optional(),
+		codebaseIndexRerankingTimeoutMs: z.number().min(1000).max(30000).optional(),
+		codebaseIndexRerankingApiKey: z.string().optional(),
 	})
 
+	let providerSpecificSchema
 	switch (provider) {
 		case "openai":
-			return baseSchema.extend({
+			providerSpecificSchema = baseSchema.extend({
 				codeIndexOpenAiKey: z.string().min(1, t("settings:codeIndex.validation.openaiApiKeyRequired")),
 				codebaseIndexEmbedderModelId: z
 					.string()
 					.min(1, t("settings:codeIndex.validation.modelSelectionRequired")),
 			})
+			break
 
 		case "ollama":
-			return baseSchema.extend({
+			providerSpecificSchema = baseSchema.extend({
 				codebaseIndexEmbedderBaseUrl: z
 					.string()
 					.min(1, t("settings:codeIndex.validation.ollamaBaseUrlRequired"))
@@ -104,9 +122,10 @@ const createValidationSchema = (provider: EmbedderProvider, t: any) => {
 					.min(1, t("settings:codeIndex.validation.modelDimensionRequired"))
 					.optional(),
 			})
+			break
 
 		case "openai-compatible":
-			return baseSchema.extend({
+			providerSpecificSchema = baseSchema.extend({
 				codebaseIndexOpenAiCompatibleBaseUrl: z
 					.string()
 					.min(1, t("settings:codeIndex.validation.baseUrlRequired"))
@@ -119,26 +138,51 @@ const createValidationSchema = (provider: EmbedderProvider, t: any) => {
 					.number()
 					.min(1, t("settings:codeIndex.validation.modelDimensionRequired")),
 			})
+			break
 
 		case "gemini":
-			return baseSchema.extend({
+			providerSpecificSchema = baseSchema.extend({
 				codebaseIndexGeminiApiKey: z.string().min(1, t("settings:codeIndex.validation.geminiApiKeyRequired")),
 				codebaseIndexEmbedderModelId: z
 					.string()
 					.min(1, t("settings:codeIndex.validation.modelSelectionRequired")),
 			})
+			break
 
 		case "mistral":
-			return baseSchema.extend({
+			providerSpecificSchema = baseSchema.extend({
 				codebaseIndexMistralApiKey: z.string().min(1, t("settings:codeIndex.validation.mistralApiKeyRequired")),
 				codebaseIndexEmbedderModelId: z
 					.string()
 					.min(1, t("settings:codeIndex.validation.modelSelectionRequired")),
 			})
+			break
 
 		default:
-			return baseSchema
+			providerSpecificSchema = baseSchema
 	}
+
+	// Add conditional validation: if re-ranking is enabled, endpoint must be a valid URL
+	return providerSpecificSchema.refine(
+		(data) => {
+			if (data.codebaseIndexRerankingEnabled && !data.codebaseIndexRerankingEndpoint) {
+				return false
+			}
+			if (data.codebaseIndexRerankingEnabled && data.codebaseIndexRerankingEndpoint) {
+				try {
+					new URL(data.codebaseIndexRerankingEndpoint)
+					return true
+				} catch {
+					return false
+				}
+			}
+			return true
+		},
+		{
+			message: t("settings:codeIndex.validation.rerankingEndpointRequired"),
+			path: ["codebaseIndexRerankingEndpoint"],
+		},
+	)
 }
 
 export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
@@ -174,12 +218,18 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 		codebaseIndexEmbedderModelDimension: undefined,
 		codebaseIndexSearchMaxResults: CODEBASE_INDEX_DEFAULTS.DEFAULT_SEARCH_RESULTS,
 		codebaseIndexSearchMinScore: CODEBASE_INDEX_DEFAULTS.DEFAULT_SEARCH_MIN_SCORE,
+		codebaseIndexRerankingEnabled: false,
+		codebaseIndexRerankingEndpoint: "",
+		codebaseIndexRerankingTimeoutMs: CODEBASE_INDEX_DEFAULTS.DEFAULT_RERANKING_TIMEOUT_MS,
+		// Default reranker max results undefined here; will be initialized from config if available
+		codebaseIndexRerankerMaxResults: CODEBASE_INDEX_DEFAULTS.DEFAULT_SEARCH_RESULTS,
 		codeIndexOpenAiKey: "",
 		codeIndexQdrantApiKey: "",
 		codebaseIndexOpenAiCompatibleBaseUrl: "",
 		codebaseIndexOpenAiCompatibleApiKey: "",
 		codebaseIndexGeminiApiKey: "",
 		codebaseIndexMistralApiKey: "",
+		codebaseIndexRerankingApiKey: "",
 	})
 
 	// Initial settings state - stores the settings when popover opens
@@ -196,6 +246,14 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 	// Initialize settings from global state
 	useEffect(() => {
 		if (codebaseIndexConfig) {
+			// Compute sensible default for reranker max results:
+			// Prefer explicit reranker setting; otherwise cap to the embedding search max results or fallback to DEFAULT_SEARCH_RESULTS.
+			const embeddingSearchMax =
+				codebaseIndexConfig.codebaseIndexSearchMaxResults ?? CODEBASE_INDEX_DEFAULTS.DEFAULT_SEARCH_RESULTS
+			const defaultRerankerMax =
+				codebaseIndexConfig.codebaseIndexRerankerMaxResults ??
+				Math.min(embeddingSearchMax, CODEBASE_INDEX_DEFAULTS.DEFAULT_SEARCH_RESULTS)
+
 			const settings = {
 				codebaseIndexEnabled: codebaseIndexConfig.codebaseIndexEnabled ?? true,
 				codebaseIndexQdrantUrl: codebaseIndexConfig.codebaseIndexQdrantUrl || "",
@@ -208,12 +266,20 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 					codebaseIndexConfig.codebaseIndexSearchMaxResults ?? CODEBASE_INDEX_DEFAULTS.DEFAULT_SEARCH_RESULTS,
 				codebaseIndexSearchMinScore:
 					codebaseIndexConfig.codebaseIndexSearchMinScore ?? CODEBASE_INDEX_DEFAULTS.DEFAULT_SEARCH_MIN_SCORE,
+				codebaseIndexRerankingEnabled: codebaseIndexConfig.codebaseIndexRerankingEnabled ?? false,
+				codebaseIndexRerankingEndpoint: codebaseIndexConfig.codebaseIndexRerankingEndpoint || "",
+				codebaseIndexRerankingTimeoutMs:
+					codebaseIndexConfig.codebaseIndexRerankingTimeoutMs ??
+					CODEBASE_INDEX_DEFAULTS.DEFAULT_RERANKING_TIMEOUT_MS,
+				// Initialize reranker max results from config or sensible fallback
+				codebaseIndexRerankerMaxResults: defaultRerankerMax,
 				codeIndexOpenAiKey: "",
 				codeIndexQdrantApiKey: "",
 				codebaseIndexOpenAiCompatibleBaseUrl: codebaseIndexConfig.codebaseIndexOpenAiCompatibleBaseUrl || "",
 				codebaseIndexOpenAiCompatibleApiKey: "",
 				codebaseIndexGeminiApiKey: "",
 				codebaseIndexMistralApiKey: "",
+				codebaseIndexRerankingApiKey: "",
 			}
 			setInitialSettings(settings)
 			setCurrentSettings(settings)
@@ -322,6 +388,12 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 					if (!prev.codebaseIndexMistralApiKey || prev.codebaseIndexMistralApiKey === SECRET_PLACEHOLDER) {
 						updated.codebaseIndexMistralApiKey = secretStatus.hasMistralApiKey ? SECRET_PLACEHOLDER : ""
 					}
+					if (
+						!prev.codebaseIndexRerankingApiKey ||
+						prev.codebaseIndexRerankingApiKey === SECRET_PLACEHOLDER
+					) {
+						updated.codebaseIndexRerankingApiKey = secretStatus.hasRerankingApiKey ? SECRET_PLACEHOLDER : ""
+					}
 
 					return updated
 				}
@@ -394,7 +466,8 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 					key === "codeIndexOpenAiKey" ||
 					key === "codebaseIndexOpenAiCompatibleApiKey" ||
 					key === "codebaseIndexGeminiApiKey" ||
-					key === "codebaseIndexMistralApiKey"
+					key === "codebaseIndexMistralApiKey" ||
+					key === "codebaseIndexRerankingApiKey"
 				) {
 					dataToValidate[key] = "placeholder-valid"
 				}
@@ -1189,6 +1262,258 @@ export const CodeIndexPopover: React.FC<CodeIndexPopoverProps> = ({
 												<span className="codicon codicon-discard" />
 											</VSCodeButton>
 										</div>
+									</div>
+
+									{/* Re-ranking Configuration */}
+									<div className="space-y-2">
+										<div className="flex items-center gap-2">
+											<label className="text-sm font-medium">
+												{t("settings:codeIndex.rerankingLabel")}
+											</label>
+											<StandardTooltip content={t("settings:codeIndex.rerankingDescription")}>
+												<span className="codicon codicon-info text-xs text-vscode-descriptionForeground cursor-help" />
+											</StandardTooltip>
+										</div>
+
+										{/* Re-ranking enabled toggle */}
+										<div className="flex items-center gap-2">
+											<VSCodeCheckbox
+												checked={currentSettings.codebaseIndexRerankingEnabled || false}
+												onChange={(e: any) =>
+													updateSetting("codebaseIndexRerankingEnabled", e.target.checked)
+												}>
+												<span className="text-sm">
+													{t("settings:codeIndex.rerankingEnabledLabel")}
+												</span>
+											</VSCodeCheckbox>
+										</div>
+
+										{/* Re-ranking endpoint */}
+										{currentSettings.codebaseIndexRerankingEnabled && (
+											<>
+												<div className="space-y-2">
+													<label className="text-sm font-medium">
+														{t("settings:codeIndex.rerankingEndpointLabel")}
+													</label>
+													<VSCodeTextField
+														value={currentSettings.codebaseIndexRerankingEndpoint || ""}
+														onInput={(e: any) =>
+															updateSetting(
+																"codebaseIndexRerankingEndpoint",
+																e.target.value,
+															)
+														}
+														placeholder={t(
+															"settings:codeIndex.rerankingEndpointPlaceholder",
+														)}
+														className={cn("w-full", {
+															"border-red-500": formErrors.codebaseIndexRerankingEndpoint,
+														})}
+													/>
+													{formErrors.codebaseIndexRerankingEndpoint && (
+														<p className="text-xs text-vscode-errorForeground mt-1 mb-0">
+															{formErrors.codebaseIndexRerankingEndpoint}
+														</p>
+													)}
+												</div>
+
+												{/* Reranker max results */}
+												<div className="space-y-2">
+													<div className="flex items-center gap-2">
+														<label className="text-sm font-medium">
+															{t("settings:codeIndex.rerankerMaxResultsLabel")}
+														</label>
+														<StandardTooltip
+															content={t(
+																"settings:codeIndex.rerankerMaxResultsDescription",
+															)}>
+															<span className="codicon codicon-info text-xs text-vscode-descriptionForeground cursor-help" />
+														</StandardTooltip>
+													</div>
+													<div className="flex items-center gap-2">
+														{/* Slider */}
+														<Slider
+															min={1}
+															max={
+																codebaseIndexConfig?.codebaseIndexSearchMaxResults ??
+																CODEBASE_INDEX_DEFAULTS.DEFAULT_SEARCH_RESULTS
+															}
+															step={1}
+															value={[
+																currentSettings.codebaseIndexRerankerMaxResults ??
+																	codebaseIndexConfig?.codebaseIndexRerankerMaxResults ??
+																	Math.min(
+																		codebaseIndexConfig?.codebaseIndexSearchMaxResults ??
+																			CODEBASE_INDEX_DEFAULTS.DEFAULT_SEARCH_RESULTS,
+																		CODEBASE_INDEX_DEFAULTS.DEFAULT_SEARCH_RESULTS,
+																	),
+															]}
+															onValueChange={(values) =>
+																updateSetting(
+																	"codebaseIndexRerankerMaxResults",
+																	Math.max(1, Math.round(values[0])),
+																)
+															}
+															className="flex-1"
+															data-testid="reranker-max-results-slider"
+														/>
+														{/* Integer textbox */}
+														<div className="w-20">
+															<FormattedTextField
+																value={currentSettings.codebaseIndexRerankerMaxResults}
+																onValueChange={(val: number | undefined) => {
+																	if (val === undefined) {
+																		// reset to 1 if empty
+																		updateSetting(
+																			"codebaseIndexRerankerMaxResults",
+																			1,
+																		)
+																		return
+																	}
+																	const maxVal =
+																		codebaseIndexConfig?.codebaseIndexSearchMaxResults ??
+																		CODEBASE_INDEX_DEFAULTS.DEFAULT_SEARCH_RESULTS
+																	let coerced = Math.floor(val)
+																	if (isNaN(coerced) || coerced < 1) coerced = 1
+																	if (coerced > maxVal) coerced = maxVal
+																	updateSetting(
+																		"codebaseIndexRerankerMaxResults",
+																		coerced,
+																	)
+																}}
+																formatter={unlimitedIntegerFormatter}
+																placeholder="50"
+																className="w-full"
+															/>
+														</div>
+														<VSCodeButton
+															appearance="icon"
+															title={t("settings:codeIndex.resetToDefault")}
+															onClick={() =>
+																updateSetting(
+																	"codebaseIndexRerankerMaxResults",
+																	codebaseIndexConfig?.codebaseIndexRerankerMaxResults ??
+																		Math.min(
+																			codebaseIndexConfig?.codebaseIndexSearchMaxResults ??
+																				CODEBASE_INDEX_DEFAULTS.DEFAULT_SEARCH_RESULTS,
+																			CODEBASE_INDEX_DEFAULTS.DEFAULT_SEARCH_RESULTS,
+																		),
+																)
+															}>
+															<span className="codicon codicon-discard" />
+														</VSCodeButton>
+													</div>
+												</div>
+
+												{/* Reranker model (optional) */}
+												<div className="space-y-2">
+													<div className="flex items-center gap-2">
+														<label className="text-sm font-medium">
+															{/* i18n keys: settings.rerankerModel.label & settings.rerankerModel.description */}
+															{t("settings:rerankerModel.label")}
+														</label>
+														<StandardTooltip
+															content={t("settings:rerankerModel.description")}>
+															<span className="codicon codicon-info text-xs text-vscode-descriptionForeground cursor-help" />
+														</StandardTooltip>
+													</div>
+													<VSCodeTextField
+														value={currentSettings.codebaseIndexRerankingModel || ""}
+														onInput={(e: any) =>
+															updateSetting("codebaseIndexRerankingModel", e.target.value)
+														}
+														placeholder={t("settings:codeIndex.modelPlaceholder")}
+														className={cn("w-full", {
+															"border-red-500": formErrors.codebaseIndexRerankingModel,
+														})}
+													/>
+													{formErrors.codebaseIndexRerankingModel && (
+														<p className="text-xs text-vscode-errorForeground mt-1 mb-0">
+															{formErrors.codebaseIndexRerankingModel}
+														</p>
+													)}
+												</div>
+
+												{/* Re-ranking API key */}
+												<div className="space-y-2">
+													<label className="text-sm font-medium">
+														{t("settings:codeIndex.rerankingApiKeyLabel")}
+													</label>
+													<VSCodeTextField
+														type="password"
+														value={currentSettings.codebaseIndexRerankingApiKey || ""}
+														onInput={(e: any) =>
+															updateSetting(
+																"codebaseIndexRerankingApiKey",
+																e.target.value,
+															)
+														}
+														placeholder={t("settings:codeIndex.rerankingApiKeyPlaceholder")}
+														className={cn("w-full", {
+															"border-red-500": formErrors.codebaseIndexRerankingApiKey,
+														})}
+													/>
+													{formErrors.codebaseIndexRerankingApiKey && (
+														<p className="text-xs text-vscode-errorForeground mt-1 mb-0">
+															{formErrors.codebaseIndexRerankingApiKey}
+														</p>
+													)}
+												</div>
+
+												{/* Re-ranking timeout */}
+												<div className="space-y-2">
+													<div className="flex items-center gap-2">
+														<label className="text-sm font-medium">
+															{t("settings:codeIndex.rerankingTimeoutLabel")}
+														</label>
+														<StandardTooltip
+															content={t(
+																"settings:codeIndex.rerankingTimeoutDescription",
+															)}>
+															<span className="codicon codicon-info text-xs text-vscode-descriptionForeground cursor-help" />
+														</StandardTooltip>
+													</div>
+													<div className="flex items-center gap-2">
+														<Slider
+															min={CODEBASE_INDEX_DEFAULTS.MIN_RERANKING_TIMEOUT_MS}
+															max={CODEBASE_INDEX_DEFAULTS.MAX_RERANKING_TIMEOUT_MS}
+															step={1000}
+															value={[
+																currentSettings.codebaseIndexRerankingTimeoutMs ??
+																	CODEBASE_INDEX_DEFAULTS.DEFAULT_RERANKING_TIMEOUT_MS,
+															]}
+															onValueChange={(values) =>
+																updateSetting(
+																	"codebaseIndexRerankingTimeoutMs",
+																	values[0],
+																)
+															}
+															className="flex-1"
+															data-testid="reranking-timeout-slider"
+														/>
+														<span className="w-16 text-center text-xs">
+															{(
+																(currentSettings.codebaseIndexRerankingTimeoutMs ??
+																	CODEBASE_INDEX_DEFAULTS.DEFAULT_RERANKING_TIMEOUT_MS) /
+																1000
+															).toFixed(1)}
+															s
+														</span>
+														<VSCodeButton
+															appearance="icon"
+															title={t("settings:codeIndex.resetToDefault")}
+															onClick={() =>
+																updateSetting(
+																	"codebaseIndexRerankingTimeoutMs",
+																	CODEBASE_INDEX_DEFAULTS.DEFAULT_RERANKING_TIMEOUT_MS,
+																)
+															}>
+															<span className="codicon codicon-discard" />
+														</VSCodeButton>
+													</div>
+												</div>
+											</>
+										)}
 									</div>
 								</div>
 							)}

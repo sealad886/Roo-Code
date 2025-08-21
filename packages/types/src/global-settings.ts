@@ -191,6 +191,7 @@ export const SECRET_STATE_KEYS = [
 	"codebaseIndexOpenAiCompatibleApiKey",
 	"codebaseIndexGeminiApiKey",
 	"codebaseIndexMistralApiKey",
+	"codebaseIndexRerankingApiKey",
 	"huggingFaceApiKey",
 	"sambaNovaApiKey",
 	"fireworksApiKey",

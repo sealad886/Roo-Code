@@ -8,6 +8,7 @@ import type {
 	Experiments,
 	ClineMessage,
 	MarketplaceItem,
+	CodebaseIndexConfig,
 } from "@roo-code/types"
 import type { CloudUserInfo, OrganizationAllowList, ShareVisibility } from "@roo-code/cloud"
 
@@ -304,6 +305,11 @@ export type ExtensionState = Pick<
 	telemetrySetting: TelemetrySetting
 	telemetryKey?: string
 	machineId?: string
+
+	// Ensure the codebase index config shape used in extension↔webview messages includes the
+	// full CodebaseIndexConfig from packages/types so the new `codebaseIndexRerankerMaxResults`
+	// field is present in typed messages.
+	codebaseIndexConfig?: CodebaseIndexConfig
 
 	renderContext: "sidebar" | "editor"
 	settingsImportedAt?: number

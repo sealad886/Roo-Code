@@ -43,6 +43,15 @@
 		"providerLabel": "Провайдер эмбеддингов",
 		"selectProviderPlaceholder": "Выберите провайдера",
 		"openaiProvider": "OpenAI",
+		"rerankingLabel": "Reranking",
+		"rerankingEnabledLabel": "Enable Reranking",
+		"rerankingDescription": "Use a reranking model to improve search result relevance. Provide endpoint and credentials.",
+		"rerankingEndpointLabel": "Reranking Endpoint",
+		"rerankingEndpointPlaceholder": "Enter reranking endpoint URL",
+		"rerankingApiKeyLabel": "API Key:",
+		"rerankingApiKeyPlaceholder": "Enter your reranking API key",
+		"rerankingTimeoutLabel": "Reranking Timeout",
+		"rerankingTimeoutDescription": "Timeout in seconds for reranking requests. Set to 0 for no timeout",
 		"ollamaProvider": "Ollama",
 		"geminiProvider": "Gemini",
 		"geminiApiKeyLabel": "Ключ API:",
@@ -125,6 +134,10 @@
 		"searchMaxResultsDescription": "Максимальное количество результатов поиска, возвращаемых при запросе индекса кодовой базы. Более высокие значения предоставляют больше контекста, но могут включать менее релевантные результаты.",
 		"resetToDefault": "Сбросить к значению по умолчанию"
 	},
+	"rerankerModel": {
+		"label": "Модель ранжирования",
+		"description": "Модель, используемая для повторного ранжирования результатов поиска (необязательно). Оставьте пустым, чтобы использовать модель по умолчанию."
+	},
 	"autoApprove": {
 		"description": "Разрешить Roo автоматически выполнять операции без необходимости одобрения. Включайте эти параметры только если полностью доверяете ИИ и понимаете связанные с этим риски безопасности.",
 		"enabled": "Автоодобрение включено",
@@ -189,20 +202,14 @@
 			"addButton": "Добавить",
 			"autoDenied": "Команды с префиксом `{{prefix}}` были запрещены пользователем. Не обходи это ограничение, выполняя другую команду."
 		},
-		"updateTodoList": {
-			"label": "Todo",
-			"description": "Список дел обновляется автоматически без подтверждения"
-		},
+		"updateTodoList": { "label": "Todo", "description": "Список дел обновляется автоматически без подтверждения" },
 		"apiRequestLimit": {
 			"title": "Максимум запросов",
 			"description": "Автоматически выполнять это количество API-запросов перед запросом разрешения на продолжение задачи.",
 			"unlimited": "Без ограничений"
 		},
 		"selectOptionsFirst": "Выберите хотя бы один вариант ниже, чтобы включить автоодобрение",
-		"apiCostLimit": {
-			"title": "Максимальная стоимость",
-			"unlimited": "Безлимитный"
-		},
+		"apiCostLimit": { "title": "Максимальная стоимость", "unlimited": "Безлимитный" },
 		"maxLimits": {
 			"description": "Автоматически выполнять запросы до указанных лимитов, прежде чем запрашивать разрешение на продолжение."
 		}
@@ -426,10 +433,7 @@
 			},
 			"resetDefaults": "Сбросить к значениям по умолчанию"
 		},
-		"rateLimitSeconds": {
-			"label": "Лимит скорости",
-			"description": "Минимальное время между запросами к API."
-		},
+		"rateLimitSeconds": { "label": "Лимит скорости", "description": "Минимальное время между запросами к API." },
 		"consecutiveMistakeLimit": {
 			"label": "Лимит ошибок и повторений",
 			"description": "Количество последовательных ошибок или повторных действий перед показом диалогового окна 'У Roo возникли проблемы'",
@@ -587,10 +591,7 @@
 		}
 	},
 	"terminal": {
-		"basic": {
-			"label": "Настройки терминала: Основные",
-			"description": "Основные настройки терминала"
-		},
+		"basic": { "label": "Настройки терминала: Основные", "description": "Основные настройки терминала" },
 		"advanced": {
 			"label": "Настройки терминала: Расширенные",
 			"description": "Следующие параметры могут потребовать перезапуск терминала для применения настроек."
@@ -644,9 +645,7 @@
 			"description": "Если включено, терминал будет наследовать переменные среды от родительского процесса VSCode, такие как настройки интеграции оболочки, определённые в профиле пользователя. Напрямую переключает глобальную настройку VSCode `terminal.integrated.inheritEnv`. <0>Подробнее</0>"
 		}
 	},
-	"advancedSettings": {
-		"title": "Дополнительные настройки"
-	},
+	"advancedSettings": { "title": "Дополнительные настройки" },
 	"advanced": {
 		"diff": {
 			"label": "Включить редактирование через диффы",
@@ -762,16 +761,9 @@
 			"label": "Разрешить анонимную отправку ошибок и статистики использования",
 			"description": "Помогите улучшить Roo Code, отправляя анонимные данные об ошибках и использовании. Код, подсказки и личная информация не отправляются. Подробнее — в политике конфиденциальности."
 		},
-		"settings": {
-			"import": "Импорт",
-			"export": "Экспорт",
-			"reset": "Сбросить"
-		}
+		"settings": { "import": "Импорт", "export": "Экспорт", "reset": "Сбросить" }
 	},
-	"thinkingBudget": {
-		"maxTokens": "Максимум токенов",
-		"maxThinkingTokens": "Максимум токенов на размышления"
-	},
+	"thinkingBudget": { "maxTokens": "Максимум токенов", "maxThinkingTokens": "Максимум токенов на размышления" },
 	"validation": {
 		"apiKey": "Вы должны указать действительный API-ключ.",
 		"awsRegion": "Вы должны выбрать регион для использования с Amazon Bedrock.",
@@ -817,10 +809,7 @@
 		"lmStudioUrl": "По умолчанию: http://localhost:1234",
 		"geminiUrl": "По умолчанию: https://generativelanguage.googleapis.com"
 	},
-	"labels": {
-		"customArn": "Пользовательский ARN",
-		"useCustomArn": "Использовать пользовательский ARN..."
-	},
+	"labels": { "customArn": "Пользовательский ARN", "useCustomArn": "Использовать пользовательский ARN..." },
 	"includeMaxOutputTokens": "Включить максимальные выходные токены",
 	"includeMaxOutputTokensDescription": "Отправлять параметр максимальных выходных токенов в API-запросах. Некоторые провайдеры могут не поддерживать это.",
 	"limitMaxTokensDescription": "Ограничить максимальное количество токенов в ответе",

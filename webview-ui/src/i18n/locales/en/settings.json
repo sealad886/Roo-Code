@@ -42,6 +42,15 @@
 		"statusTitle": "Status",
 		"enableLabel": "Enable Codebase Indexing",
 		"enableDescription": "Enable code indexing for improved search and context understanding",
+		"rerankingLabel": "Reranking",
+		"rerankingEnabledLabel": "Enable Reranking",
+		"rerankingDescription": "Use a reranking model to improve search result relevance. Provide endpoint and credentials.",
+		"rerankingEndpointLabel": "Reranking Endpoint",
+		"rerankingEndpointPlaceholder": "Enter reranking endpoint URL",
+		"rerankingApiKeyLabel": "API Key:",
+		"rerankingApiKeyPlaceholder": "Enter your reranking API key",
+		"rerankingTimeoutLabel": "Reranking Timeout",
+		"rerankingTimeoutDescription": "Timeout in seconds for reranking requests. Set to 0 for no timeout",
 		"settingsTitle": "Indexing Settings",
 		"disabledMessage": "Codebase indexing is currently disabled. Enable it in the global settings to configure indexing options.",
 		"providerLabel": "Embeddings Provider",
@@ -82,6 +91,8 @@
 		"searchMinScoreResetTooltip": "Reset to default value (0.4)",
 		"searchMaxResultsLabel": "Maximum Search Results",
 		"searchMaxResultsDescription": "Maximum number of search results to return when querying the codebase index. Higher values provide more context but may include less relevant results.",
+		"rerankerMaxResultsLabel": "Reranker results limit",
+		"rerankerMaxResultsDescription": "Maximum number of results sent to the re-ranking service. Capped by the embedding search max results.",
 		"resetToDefault": "Reset to default",
 		"startIndexingButton": "Start Indexing",
 		"clearIndexDataButton": "Clear Index Data",
@@ -124,6 +135,10 @@
 			"baseUrlRequired": "Base URL is required",
 			"modelDimensionMinValue": "Model dimension must be greater than 0"
 		}
+	},
+	"rerankerModel": {
+		"label": "Reranker model",
+		"description": "Model used for reranking search results (optional). Leave empty to use the default reranker."
 	},
 	"autoApprove": {
 		"description": "Allow Roo to automatically perform operations without requiring approval. Enable these settings only if you fully trust the AI and understand the associated security risks.",

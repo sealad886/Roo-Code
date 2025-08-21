@@ -6,6 +6,7 @@ import { IVectorStore } from "../interfaces/vector-store"
 import { Payload, VectorStoreSearchResult } from "../interfaces"
 import { DEFAULT_MAX_SEARCH_RESULTS, DEFAULT_SEARCH_MIN_SCORE } from "../constants"
 import { t } from "../../../i18n"
+import { logger } from "../../../utils/logging"
 
 /**
  * Qdrant implementation of the vector store interface
@@ -30,6 +31,16 @@ export class QdrantVectorStore implements IVectorStore {
 		// Store the resolved URL for our property
 		this.qdrantUrl = parsedUrl
 
+		// Helper to mask api keys for safe logging: show first 4, '...' , last 4, and length
+		const maskApiKey = (k?: string) => {
+			if (!k) return { masked: "<none>", length: 0 }
+			const len = k.length
+			const first = k.substring(0, 4)
+			const last = k.substring(Math.max(0, len - 4))
+			return { masked: `${first}...${last}`, length: len }
+		}
+		const { masked, length } = maskApiKey(apiKey)
+
 		try {
 			const urlObj = new URL(parsedUrl)
 
@@ -53,27 +64,41 @@ export class QdrantVectorStore implements IVectorStore {
 				}
 			}
 
+			const headers: Record<string, string> = {
+				"User-Agent": "Roo-Code",
+			}
+			// Ensure the API key header is attached on every request if provided.
+			// Qdrant uses the header name "api-key".
+			if (apiKey) {
+				headers["api-key"] = apiKey
+			}
+
 			this.client = new QdrantClient({
 				host: urlObj.hostname,
 				https: useHttps,
 				port: port,
 				prefix: urlObj.pathname === "/" ? undefined : urlObj.pathname.replace(/\/+$/, ""),
 				apiKey,
-				headers: {
-					"User-Agent": "Roo-Code",
-				},
+				headers,
 			})
 		} catch (urlError) {
 			// If URL parsing fails, fall back to URL-based config
 			// Note: This fallback won't correctly handle prefixes, but it's a last resort for malformed URLs.
+			const headers: Record<string, string> = {
+				"User-Agent": "Roo-Code",
+			}
+			if (apiKey) {
+				headers["api-key"] = apiKey
+			}
 			this.client = new QdrantClient({
 				url: parsedUrl,
 				apiKey,
-				headers: {
-					"User-Agent": "Roo-Code",
-				},
+				headers,
 			})
 		}
+
+		// Safe debug log that an API key was received (masked). Do NOT log raw secrets.
+		logger.debug(`QdrantClient initialized - apiKey=${masked} length=${length}`)
 
 		// Generate collection name from workspace path
 		const hash = createHash("sha256").update(workspacePath).digest("hex")

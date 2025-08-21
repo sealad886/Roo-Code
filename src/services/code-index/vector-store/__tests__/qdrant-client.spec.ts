@@ -4,11 +4,23 @@ import { createHash } from "crypto"
 import { QdrantVectorStore } from "../qdrant-client"
 import { getWorkspacePath } from "../../../../utils/path"
 import { DEFAULT_MAX_SEARCH_RESULTS, DEFAULT_SEARCH_MIN_SCORE } from "../../constants"
+import { logger } from "../../../../utils/logging"
 
 // Mocks
 vitest.mock("@qdrant/js-client-rest")
 vitest.mock("crypto")
 vitest.mock("../../../../utils/path")
+vitest.mock("../../../../utils/logging", () => ({
+	logger: {
+		debug: vitest.fn(),
+		info: vitest.fn(),
+		warn: vitest.fn(),
+		error: vitest.fn(),
+		fatal: vitest.fn(),
+		child: () => ({ debug: vitest.fn() }),
+		close: () => {},
+	},
+}))
 vitest.mock("../../../../i18n", () => ({
 	t: (key: string, params?: any) => {
 		// Mock translation function that includes parameters for testing
@@ -80,6 +92,7 @@ describe("QdrantVectorStore", () => {
 			apiKey: mockApiKey,
 			headers: {
 				"User-Agent": "Roo-Code",
+				"api-key": mockApiKey,
 			},
 		})
 		expect(createHash).toHaveBeenCalledWith("sha256")
@@ -88,6 +101,11 @@ describe("QdrantVectorStore", () => {
 		// Access private member for testing constructor logic (not ideal, but necessary here)
 		expect((vectorStore as any).collectionName).toBe(expectedCollectionName)
 		expect((vectorStore as any).vectorSize).toBe(mockVectorSize)
+
+		// Verify masked logging was performed (should not log raw secret)
+		const expectedMasked = "test...-key"
+		const expectedMessage = `QdrantClient initialized - apiKey=${expectedMasked} length=${mockApiKey.length}`
+		expect(logger.debug).toHaveBeenCalledWith(expectedMessage)
 	})
 	it("should handle constructor with default URL when none provided", () => {
 		const vectorStoreWithDefaults = new QdrantVectorStore(mockWorkspacePath, undefined as any, mockVectorSize)
